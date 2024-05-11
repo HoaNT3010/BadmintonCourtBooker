@@ -1,4 +1,5 @@
 using WebAPI;
+using WebAPI.Middlewares;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,6 +15,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+// Cors policy
 app.UseCors(DependencyInjection.CORS_PUBLIC_POLICY_NAME);
 
 app.UseHttpsRedirection();
@@ -21,6 +23,9 @@ app.UseHttpsRedirection();
 app.UseAuthentication();
 
 app.UseAuthorization();
+
+// Global exception middleware
+app.UseMiddleware<GlobalExceptionMiddleware>();
 
 app.MapControllers();
 
