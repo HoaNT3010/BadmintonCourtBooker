@@ -26,7 +26,7 @@ if (app.Environment.IsDevelopment())
 app.UseSerilogRequestLogging();
 
 // Cors policy
-app.UseCors(DependencyInjection.CORS_PUBLIC_POLICY_NAME);
+app.UseCors(DependencyInjection.CorsPublicPolicy);
 
 app.UseHttpsRedirection();
 
