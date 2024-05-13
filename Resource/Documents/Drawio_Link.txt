@@ -1,0 +1,2 @@
+Database schema + ERD:
+	https://drive.google.com/file/d/1jsHy0-NlBGPFRgrg5yZQPqZOhmNDgAMm/view?usp=sharing
