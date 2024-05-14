@@ -1,5 +1,6 @@
 ﻿using Application.ErrorHandlers;
 using Microsoft.AspNetCore.Mvc;
+using Serilog;
 
 namespace WebAPI.Controllers
 {
@@ -18,6 +19,7 @@ namespace WebAPI.Controllers
         [HttpGet("error-handler")]
         public IActionResult TestErrorHandlerResponse()
         {
+            Log.Information("Testing error handler response");
             throw new NotFoundException("Test NotFoundException response");
         }
     }

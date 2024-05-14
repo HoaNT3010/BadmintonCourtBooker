@@ -1,4 +1,5 @@
 ﻿using Application.ErrorHandlers;
+using Serilog;
 using System.Net;
 
 namespace WebAPI.Middlewares
@@ -20,6 +21,7 @@ namespace WebAPI.Middlewares
             }
             catch (Exception ex)
             {
+                Log.Error(ex.Message);
                 await HandleExceptionAsync(context, ex);
             }
         }
