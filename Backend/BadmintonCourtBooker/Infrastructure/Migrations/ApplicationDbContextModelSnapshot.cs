@@ -153,6 +153,38 @@ namespace Infrastructure.Migrations
                     b.ToTable("Courts");
                 });
 
+            modelBuilder.Entity("Domain.Entities.Employee", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<Guid>("CourtId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("EndDate")
+                        .HasColumnType("datetime2(0)");
+
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("datetime2(0)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CourtId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Employees");
+                });
+
             modelBuilder.Entity("Domain.Entities.PaymentMethod", b =>
                 {
                     b.Property<int>("Id")
@@ -417,6 +449,25 @@ namespace Infrastructure.Migrations
                     b.Navigation("Manager");
                 });
 
+            modelBuilder.Entity("Domain.Entities.Employee", b =>
+                {
+                    b.HasOne("Domain.Entities.Court", "Court")
+                        .WithMany("Employees")
+                        .HasForeignKey("CourtId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Entities.User", "User")
+                        .WithMany("Employees")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Court");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("Domain.Entities.PaymentMethod", b =>
                 {
                     b.HasOne("Domain.Entities.Court", "Court")
@@ -483,6 +534,8 @@ namespace Infrastructure.Migrations
 
                     b.Navigation("Bookings");
 
+                    b.Navigation("Employees");
+
                     b.Navigation("PaymentMethods");
 
                     b.Navigation("Schedules");
@@ -513,6 +566,8 @@ namespace Infrastructure.Migrations
                     b.Navigation("Bookings");
 
                     b.Navigation("CreatedCourts");
+
+                    b.Navigation("Employees");
 
                     b.Navigation("ManagedCourts");
 

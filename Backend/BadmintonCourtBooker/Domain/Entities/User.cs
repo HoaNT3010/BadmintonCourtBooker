@@ -42,6 +42,7 @@ namespace Domain.Entities
         public virtual ICollection<Court> CreatedCourts { get; set; } = new List<Court>();
         public virtual ICollection<Transaction> Transactions { get; set; } = new List<Transaction>();
         public virtual ICollection<Booking> Bookings { get; set; } = new List<Booking>();
+        public virtual ICollection<Employee> Employees { get; set; } = new List<Employee>();
 
         #endregion
     }

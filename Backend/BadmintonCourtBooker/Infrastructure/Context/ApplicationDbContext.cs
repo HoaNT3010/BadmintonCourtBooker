@@ -18,6 +18,7 @@ namespace Infrastructure.Context
         public virtual DbSet<Transaction> Transactions { get; set; }
         public virtual DbSet<TransactionDetail> TransactionsDetails { get; set; }
         public virtual DbSet<Booking> Bookings { get; set; }
+        public virtual DbSet<Employee> Employees { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

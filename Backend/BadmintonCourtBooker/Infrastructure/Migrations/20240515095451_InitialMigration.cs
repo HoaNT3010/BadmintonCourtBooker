@@ -110,6 +110,34 @@ namespace Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Employees",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    StartDate = table.Column<DateTime>(type: "datetime2(0)", nullable: false),
+                    EndDate = table.Column<DateTime>(type: "datetime2(0)", nullable: true),
+                    Status = table.Column<int>(type: "int", nullable: false),
+                    CourtId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Employees", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Employees_Courts_CourtId",
+                        column: x => x.CourtId,
+                        principalTable: "Courts",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Employees_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
+                        principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
                 name: "PaymentMethods",
                 columns: table => new
                 {
@@ -284,6 +312,16 @@ namespace Infrastructure.Migrations
                 column: "ManagerId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Employees_CourtId",
+                table: "Employees",
+                column: "CourtId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Employees_UserId",
+                table: "Employees",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_PaymentMethods_CourtId",
                 table: "PaymentMethods",
                 column: "CourtId");
@@ -314,6 +352,9 @@ namespace Infrastructure.Migrations
         {
             migrationBuilder.DropTable(
                 name: "Bookings");
+
+            migrationBuilder.DropTable(
+                name: "Employees");
 
             migrationBuilder.DropTable(
                 name: "PaymentMethods");

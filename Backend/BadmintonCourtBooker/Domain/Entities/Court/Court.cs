@@ -50,6 +50,7 @@ namespace Domain.Entities
         public virtual ICollection<BookingMethod> BookingMethods { get; set; } = new List<BookingMethod>();
         public virtual ICollection<Schedule> Schedules { get; set; } = new List<Schedule>();
         public virtual ICollection<Booking> Bookings { get; set; } = new List<Booking>();
+        public virtual ICollection<Employee> Employees { get; set; } = new List<Employee>();
 
         #endregion
     }
