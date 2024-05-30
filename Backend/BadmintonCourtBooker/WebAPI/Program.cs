@@ -1,3 +1,4 @@
+using Application;
 using Infrastructure;
 using Infrastructure.Context;
 using Serilog;
@@ -12,6 +13,7 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 // Add services to the container.
 builder.Services.AddApiServices();
 builder.Services.AddInfrastructureServices(connectionString!);
+builder.Services.AddApplicationServices();
 
 // Configure SeriLog
 Log.Logger = new LoggerConfiguration()
@@ -34,7 +36,6 @@ using (var scope = app.Services.CreateScope())
     var dbContext = services.GetRequiredService<ApplicationDbContext>();
     dbContext.Database.EnsureCreated();
 }
-
 
 // Using SeriLog
 app.UseSerilogRequestLogging();
