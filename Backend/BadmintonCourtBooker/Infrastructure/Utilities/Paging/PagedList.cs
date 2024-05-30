@@ -1,4 +1,4 @@
-﻿namespace Application.Utilities.Paging
+﻿namespace Infrastructure.Utilities.Paging
 {
     public class PagedList<T> where T : class
     {
