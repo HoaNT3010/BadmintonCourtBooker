@@ -1,4 +1,5 @@
 using Infrastructure;
+using Infrastructure.Context;
 using Serilog;
 using WebAPI;
 using WebAPI.Middlewares;
@@ -26,6 +27,14 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    var dbContext = services.GetRequiredService<ApplicationDbContext>();
+    dbContext.Database.EnsureCreated();
+}
+
 
 // Using SeriLog
 app.UseSerilogRequestLogging();

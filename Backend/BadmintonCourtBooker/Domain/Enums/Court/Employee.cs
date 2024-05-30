@@ -6,4 +6,11 @@
         Active,
         Terminated,
     }
+
+    public enum EmployeeRole
+    {
+        None = 0,
+        Manager,
+        Staff,
+    }
 }

@@ -1,4 +1,5 @@
 ﻿using Domain.Entities;
+using Infrastructure.Configurations;
 using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Context
@@ -22,18 +23,16 @@ namespace Infrastructure.Context
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            base.OnModelCreating(modelBuilder);
-
-            modelBuilder.Entity<User>(user =>
-            {
-                user.HasMany(u => u.ManagedCourts)
-                .WithOne(c => c.Manager)
-                .HasForeignKey(c => c.ManagerId);
-
-                user.HasMany(u => u.CreatedCourts)
-                .WithOne(c => c.Creator)
-                .HasForeignKey(c => c.CreatorId);
-            });
+            modelBuilder.ApplyConfiguration(new UserEntityConfiguration());
+            modelBuilder.ApplyConfiguration(new CourtEntityConfiguration());
+            modelBuilder.ApplyConfiguration(new EmployeeEntityConfiguration());
+            modelBuilder.ApplyConfiguration(new BookingEntityConfiguration());
+            modelBuilder.ApplyConfiguration(new PaymentMethodEntityConfiguration());
+            modelBuilder.ApplyConfiguration(new ScheduleEntityConfiguration());
+            modelBuilder.ApplyConfiguration(new SlotEntityConfiguration());
+            modelBuilder.ApplyConfiguration(new TransactionEntityConfiguration());
+            modelBuilder.ApplyConfiguration(new TransactionDetailEntityConfiguration());
+            modelBuilder.ApplyConfiguration(new BookingEntityConfiguration());
         }
     }
 }

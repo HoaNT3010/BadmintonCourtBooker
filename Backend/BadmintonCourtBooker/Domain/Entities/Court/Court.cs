@@ -36,11 +36,6 @@ namespace Domain.Entities
 
         #region NavigationProperties
 
-        public Guid ManagerId { get; set; }
-        [ForeignKey(nameof(ManagerId))]
-        [DeleteBehavior(DeleteBehavior.NoAction)]
-        public virtual User Manager { get; set; } = null!;
-
         public Guid CreatorId { get; set; }
         [ForeignKey(nameof(CreatorId))]
         [DeleteBehavior(DeleteBehavior.NoAction)]

@@ -38,7 +38,6 @@ namespace Domain.Entities
 
         #region NavigationProperties
 
-        public virtual ICollection<Court> ManagedCourts { get; set; } = new List<Court>();
         public virtual ICollection<Court> CreatedCourts { get; set; } = new List<Court>();
         public virtual ICollection<Transaction> Transactions { get; set; } = new List<Transaction>();
         public virtual ICollection<Booking> Bookings { get; set; } = new List<Booking>();

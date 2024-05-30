@@ -19,6 +19,8 @@ namespace Domain.Entities
 
         public EmployeeStatus Status { get; set; }
 
+        public EmployeeRole Role { get; set; }
+
         #region NavigationProperties
 
         public Guid CourtId { get; set; }

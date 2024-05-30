@@ -69,7 +69,7 @@ namespace Infrastructure.Migrations
                         .IsUnique()
                         .HasFilter("[TransactionDetailId] IS NOT NULL");
 
-                    b.ToTable("Bookings");
+                    b.ToTable("Booking", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entities.BookingMethod", b =>
@@ -127,9 +127,6 @@ namespace Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(1000)");
 
-                    b.Property<Guid>("ManagerId")
-                        .HasColumnType("uniqueidentifier");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(100)");
@@ -148,9 +145,7 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("CreatorId");
 
-                    b.HasIndex("ManagerId");
-
-                    b.ToTable("Courts");
+                    b.ToTable("Court", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entities.Employee", b =>
@@ -167,6 +162,9 @@ namespace Infrastructure.Migrations
                     b.Property<DateTime?>("EndDate")
                         .HasColumnType("datetime2(0)");
 
+                    b.Property<int>("Role")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("datetime2(0)");
 
@@ -182,7 +180,7 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Employees");
+                    b.ToTable("CourtEmployee", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entities.PaymentMethod", b =>
@@ -207,7 +205,7 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("CourtId");
 
-                    b.ToTable("PaymentMethods");
+                    b.ToTable("CourtPaymentMethod", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entities.Schedule", b =>
@@ -234,7 +232,7 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("CourtId");
 
-                    b.ToTable("Schedules");
+                    b.ToTable("CourtSchedule", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entities.Slot", b =>
@@ -261,7 +259,7 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("ScheduleId");
 
-                    b.ToTable("Slots");
+                    b.ToTable("ScheduleSlot", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entities.Transaction", b =>
@@ -297,7 +295,7 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("CreatorId");
 
-                    b.ToTable("Transactions");
+                    b.ToTable("Transaction", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entities.TransactionDetail", b =>
@@ -330,7 +328,7 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("TransactionId");
 
-                    b.ToTable("TransactionsDetails");
+                    b.ToTable("TransactionDetail", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entities.User", b =>
@@ -374,7 +372,171 @@ namespace Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Users");
+                    b.HasIndex("Email")
+                        .IsUnique();
+
+                    b.HasIndex("PhoneNumber")
+                        .IsUnique();
+
+                    b.ToTable("User", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("40d95dd2-0ff8-4ad7-8533-d79f22b2a340"),
+                            BookingTime = 0m,
+                            CreatedDate = new DateTime(2024, 5, 30, 10, 20, 30, 24, DateTimeKind.Utc).AddTicks(8161),
+                            Email = "systemadmin@gmail.com",
+                            FirstName = "Admin",
+                            LastName = "System",
+                            PasswordHash = "$2a$11$mbOfFKZU4799J/4dE92PpOA83OQfS13xcoc159rpjdr.62OXtKnla",
+                            PhoneNumber = "0123456789",
+                            Role = 4,
+                            Status = 2
+                        },
+                        new
+                        {
+                            Id = new Guid("6af47088-5036-4bfc-a0dc-f7ebd3f3f701"),
+                            BookingTime = 0m,
+                            CreatedDate = new DateTime(2024, 5, 30, 10, 20, 30, 153, DateTimeKind.Utc).AddTicks(573),
+                            Email = "manager1@gmail.com",
+                            FirstName = "Manager 1",
+                            LastName = "Court",
+                            PasswordHash = "$2a$11$Bz.FJz1zwrLDrkG8XjXuf.dzerTiess2GTorh/bp/rliThcOYkAbu",
+                            PhoneNumber = "0123456781",
+                            Role = 3,
+                            Status = 2
+                        },
+                        new
+                        {
+                            Id = new Guid("5a9104cf-ff64-4f2b-a90c-6c6a7cbf15cf"),
+                            BookingTime = 0m,
+                            CreatedDate = new DateTime(2024, 5, 30, 10, 20, 30, 282, DateTimeKind.Utc).AddTicks(7020),
+                            Email = "manager2@gmail.com",
+                            FirstName = "Manager 2",
+                            LastName = "Court",
+                            PasswordHash = "$2a$11$SXQk52JqIeTUzgvwRX678.5qxrnsK7jH29qeFCH10iOUc4E9mTH/6",
+                            PhoneNumber = "0123456782",
+                            Role = 3,
+                            Status = 2
+                        },
+                        new
+                        {
+                            Id = new Guid("a71ee58a-3738-400c-9268-79e2987970a1"),
+                            BookingTime = 0m,
+                            CreatedDate = new DateTime(2024, 5, 30, 10, 20, 30, 415, DateTimeKind.Utc).AddTicks(5909),
+                            Email = "manager3@gmail.com",
+                            FirstName = "Manager 3",
+                            LastName = "Court",
+                            PasswordHash = "$2a$11$7w8E.pC6RwhNEA.oPgttlO6X79ZplK5lzF8IaAcZ71/BEzG46qLDq",
+                            PhoneNumber = "0123456783",
+                            Role = 3,
+                            Status = 3
+                        },
+                        new
+                        {
+                            Id = new Guid("fd1f4ed3-895d-498e-a882-4b181e476f59"),
+                            BookingTime = 0m,
+                            CreatedDate = new DateTime(2024, 5, 30, 10, 20, 30, 541, DateTimeKind.Utc).AddTicks(1395),
+                            Email = "customer1@gmail.com",
+                            FirstName = "Customer 1",
+                            LastName = "Application",
+                            PasswordHash = "$2a$11$nWEQ4dnkPG1y6zKQguRFIetPii4FjdGQCZpPC8cYB5H0VkRgnfPa6",
+                            PhoneNumber = "0123456701",
+                            Role = 1,
+                            Status = 2
+                        },
+                        new
+                        {
+                            Id = new Guid("7166467d-cb8d-4fe6-8dcb-e7243903cbff"),
+                            BookingTime = 0m,
+                            CreatedDate = new DateTime(2024, 5, 30, 10, 20, 30, 668, DateTimeKind.Utc).AddTicks(6408),
+                            Email = "customer2@gmail.com",
+                            FirstName = "Customer 2",
+                            LastName = "Application",
+                            PasswordHash = "$2a$11$breyP7ioNRfF7jeVK6k.surMWPzW5M3JcL/iazJUCuZYFYKB8JSdO",
+                            PhoneNumber = "0123456702",
+                            Role = 1,
+                            Status = 2
+                        },
+                        new
+                        {
+                            Id = new Guid("a09fb0ec-1167-4ba8-87e7-cfc848f1bbd8"),
+                            BookingTime = 0m,
+                            CreatedDate = new DateTime(2024, 5, 30, 10, 20, 30, 794, DateTimeKind.Utc).AddTicks(1564),
+                            Email = "customer3@gmail.com",
+                            FirstName = "Customer 3",
+                            LastName = "Application",
+                            PasswordHash = "$2a$11$u1HDZzAaHFxN/0lfwXXIWe0fWypqECr1Fsht83i9Ev9IA4WVX41gy",
+                            PhoneNumber = "0123456703",
+                            Role = 1,
+                            Status = 2
+                        },
+                        new
+                        {
+                            Id = new Guid("283626f5-1884-4dcf-8c21-02467533a323"),
+                            BookingTime = 0m,
+                            CreatedDate = new DateTime(2024, 5, 30, 10, 20, 30, 919, DateTimeKind.Utc).AddTicks(245),
+                            Email = "customer4@gmail.com",
+                            FirstName = "Customer 4",
+                            LastName = "Application",
+                            PasswordHash = "$2a$11$9yRycyAjrp3vWPRW4NLsk.ldKI94irUq6BnzutYDgYpTZz.xHcYbq",
+                            PhoneNumber = "0123456704",
+                            Role = 1,
+                            Status = 1
+                        },
+                        new
+                        {
+                            Id = new Guid("f7b17042-048d-4777-9380-4057b701bc92"),
+                            BookingTime = 0m,
+                            CreatedDate = new DateTime(2024, 5, 30, 10, 20, 31, 44, DateTimeKind.Utc).AddTicks(1444),
+                            Email = "customer5@gmail.com",
+                            FirstName = "Customer 5",
+                            LastName = "Application",
+                            PasswordHash = "$2a$11$9NzDptsngIFbq.bMwq63dextEPAvt2ttxPcj4KgNHRKADtxpsz2g.",
+                            PhoneNumber = "0123456705",
+                            Role = 1,
+                            Status = 3
+                        },
+                        new
+                        {
+                            Id = new Guid("10852e2f-a4e8-4c55-acc7-dc73eecb79af"),
+                            BookingTime = 0m,
+                            CreatedDate = new DateTime(2024, 5, 30, 10, 20, 31, 168, DateTimeKind.Utc).AddTicks(2666),
+                            Email = "staff1@gmail.com",
+                            FirstName = "Staff 1",
+                            LastName = "Court",
+                            PasswordHash = "$2a$11$U/epyaOjAa9B6xhP7mNqfu78AUDUFmYa.cYNzy3JXIF9pgObAYcI2",
+                            PhoneNumber = "0123456711",
+                            Role = 2,
+                            Status = 2
+                        },
+                        new
+                        {
+                            Id = new Guid("1d797b74-2b07-47ea-b467-afd71a25ec7e"),
+                            BookingTime = 0m,
+                            CreatedDate = new DateTime(2024, 5, 30, 10, 20, 31, 294, DateTimeKind.Utc).AddTicks(2683),
+                            Email = "staff2@gmail.com",
+                            FirstName = "Staff 2",
+                            LastName = "Court",
+                            PasswordHash = "$2a$11$LhbNNHokIxIGfFI1H9V3o.AZDtSSHJNah6W1bvYNaSwpKfPp.87Ni",
+                            PhoneNumber = "0123456712",
+                            Role = 2,
+                            Status = 2
+                        },
+                        new
+                        {
+                            Id = new Guid("9cb54195-05c7-404a-9263-7888d3868db1"),
+                            BookingTime = 0m,
+                            CreatedDate = new DateTime(2024, 5, 30, 10, 20, 31, 418, DateTimeKind.Utc).AddTicks(6196),
+                            Email = "staff3@gmail.com",
+                            FirstName = "Staff 3",
+                            LastName = "Court",
+                            PasswordHash = "$2a$11$pRdKFcp91c6NSOmXLCbLneuvD9hVCv9iUxArW7u4Q1O6AWUYRCtCa",
+                            PhoneNumber = "0123456713",
+                            Role = 2,
+                            Status = 3
+                        });
                 });
 
             modelBuilder.Entity("Domain.Entities.Booking", b =>
@@ -438,15 +600,7 @@ namespace Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
-                    b.HasOne("Domain.Entities.User", "Manager")
-                        .WithMany("ManagedCourts")
-                        .HasForeignKey("ManagerId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
                     b.Navigation("Creator");
-
-                    b.Navigation("Manager");
                 });
 
             modelBuilder.Entity("Domain.Entities.Employee", b =>
@@ -568,8 +722,6 @@ namespace Infrastructure.Migrations
                     b.Navigation("CreatedCourts");
 
                     b.Navigation("Employees");
-
-                    b.Navigation("ManagedCourts");
 
                     b.Navigation("Transactions");
                 });
