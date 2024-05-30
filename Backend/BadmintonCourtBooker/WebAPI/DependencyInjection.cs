@@ -32,6 +32,8 @@ namespace WebAPI
             services.ConfigureOptions<JwtOptionsSetup>();
             services.ConfigureOptions<JwtBearerOptionsSetup>();
 
+            // Prometheus
+
             return services;
         }
     }

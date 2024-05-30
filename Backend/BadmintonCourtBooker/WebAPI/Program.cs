@@ -1,11 +1,17 @@
+using Infrastructure;
+using Infrastructure.Context;
 using Serilog;
 using WebAPI;
 using WebAPI.Middlewares;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Get connection string
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+
 // Add services to the container.
 builder.Services.AddApiServices();
+builder.Services.AddInfrastructureServices(connectionString!);
 
 // Configure SeriLog
 Log.Logger = new LoggerConfiguration()
@@ -22,11 +28,19 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    var dbContext = services.GetRequiredService<ApplicationDbContext>();
+    dbContext.Database.EnsureCreated();
+}
+
+
 // Using SeriLog
 app.UseSerilogRequestLogging();
 
 // Cors policy
-app.UseCors(DependencyInjection.CorsPublicPolicy);
+app.UseCors(WebAPI.DependencyInjection.CorsPublicPolicy);
 
 app.UseHttpsRedirection();
 
