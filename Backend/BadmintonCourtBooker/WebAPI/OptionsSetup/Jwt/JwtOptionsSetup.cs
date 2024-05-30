@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Options;
+﻿using Application.Utilities.OptionsSetup;
+using Microsoft.Extensions.Options;
 
 namespace WebAPI.OptionsSetup.Jwt
 {

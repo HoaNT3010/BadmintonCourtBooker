@@ -1,4 +1,6 @@
-﻿using FluentValidation;
+﻿using Application.Services.ConcreteClasses;
+using Application.Services.Interfaces;
+using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 using SharpGrip.FluentValidation.AutoValidation.Mvc.Extensions;
 
@@ -16,6 +18,9 @@ namespace Application
             // FluentValidation
             services.AddValidatorsFromAssembly(assembly);
             services.AddFluentValidationAutoValidation();
+
+            // Services
+            services.AddScoped<IJwtService, JwtService>();
 
             return services;
         }

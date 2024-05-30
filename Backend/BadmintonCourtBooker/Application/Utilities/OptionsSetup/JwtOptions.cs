@@ -1,4 +1,4 @@
-﻿namespace WebAPI.OptionsSetup.Jwt
+﻿namespace Application.Utilities.OptionsSetup
 {
     public class JwtOptions
     {
