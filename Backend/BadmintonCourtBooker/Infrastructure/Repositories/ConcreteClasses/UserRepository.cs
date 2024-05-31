@@ -2,6 +2,7 @@
 using Infrastructure.Context;
 using Infrastructure.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using BC = BCrypt.Net.BCrypt;
 
 namespace Infrastructure.Repositories.ConcreteClasses
 {
@@ -23,7 +24,7 @@ namespace Infrastructure.Repositories.ConcreteClasses
             {
                 return null;
             }
-            if (!BCrypt.Net.BCrypt.EnhancedVerify(password, user.PasswordHash))
+            if (!BC.EnhancedVerify(password, user.PasswordHash))
             {
                 return null;
             }

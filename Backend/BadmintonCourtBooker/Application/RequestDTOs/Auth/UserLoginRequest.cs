@@ -1,4 +1,4 @@
-﻿namespace Application.RequestDTOs.User
+﻿namespace Application.RequestDTOs.Auth
 {
     public class UserLoginRequest
     {

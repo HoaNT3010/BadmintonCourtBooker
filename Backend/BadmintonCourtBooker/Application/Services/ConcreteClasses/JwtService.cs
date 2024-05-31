@@ -25,6 +25,7 @@ namespace Application.Services.ConcreteClasses
                 new Claim("Id", user.Id.ToString()),
                 new Claim("Email", user.Email.ToString()),
                 new Claim("Role", user.Role.ToString()),
+                new Claim("Status", user.Status.ToString())
             };
 
             var signingCredentials = new SigningCredentials(
