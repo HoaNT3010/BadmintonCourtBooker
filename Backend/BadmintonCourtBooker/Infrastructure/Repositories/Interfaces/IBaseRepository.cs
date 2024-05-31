@@ -1,4 +1,4 @@
-﻿using Application.Utilities.Paging;
+﻿using Infrastructure.Utilities.Paging;
 using System.Linq.Expressions;
 
 namespace Infrastructure.Repositories.Interfaces

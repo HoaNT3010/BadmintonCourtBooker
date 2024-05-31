@@ -1,4 +1,4 @@
-﻿using Application.Utilities.Paging;
+﻿using Infrastructure.Utilities.Paging;
 using Infrastructure.Context;
 using Infrastructure.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;

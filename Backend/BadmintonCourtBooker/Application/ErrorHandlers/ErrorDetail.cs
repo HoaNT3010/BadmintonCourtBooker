@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using Application.Utilities;
+using System.Text.Json;
 
 namespace Application.ErrorHandlers
 {
@@ -7,7 +8,7 @@ namespace Application.ErrorHandlers
         public int StatusCode { get; set; }
         public string? Title { get; set; }
         public string? Message { get; set; }
-        public DateTime Date { get; set; } = DateTime.Now;
+        public string Date { get; set; } = DateTimeHelper.FormatDateTime(DateTime.UtcNow);
 
         public override string ToString()
         {
