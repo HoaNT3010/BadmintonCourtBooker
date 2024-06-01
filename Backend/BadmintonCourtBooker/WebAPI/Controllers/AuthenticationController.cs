@@ -19,6 +19,11 @@ namespace WebAPI.Controllers
             this.userService = userService;
         }
 
+        /// <summary>
+        /// Log user into the BadmintonCourtBooker system
+        /// </summary>
+        /// <param name="loginRequest">User's login credentials</param>
+        /// <returns>Login result object contains JWT access token, user's role and status</returns>
         [HttpPost]
         [Route("login")]
         [AllowAnonymous]
@@ -30,6 +35,14 @@ namespace WebAPI.Controllers
         {
             var result = await userService.UserLogin(loginRequest);
             return Ok(result);
+        }
+
+        [HttpPost]
+        [Route("register/customer")]
+        [AllowAnonymous]
+        public async Task<IActionResult> RegisterCustomer([FromBody] CustomerRegisterRequest registerRequest)
+        {
+            return Ok();
         }
     }
 }
