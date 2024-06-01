@@ -12,7 +12,7 @@
     public enum UserStatus
     {
         None = 0,
-        NotVerified,
+        Unverified,
         Active,
         Suspended,
     }
