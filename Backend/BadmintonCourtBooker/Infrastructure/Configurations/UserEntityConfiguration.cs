@@ -106,7 +106,7 @@ namespace Infrastructure.Configurations
                     LastName = "Application",
                     PhoneNumber = "0123456704",
                     Role = UserRole.Customer,
-                    Status = UserStatus.NotVerified,
+                    Status = UserStatus.Unverified,
                 },
                 new User(){
                     Id = Guid.NewGuid(),

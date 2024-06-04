@@ -1,4 +1,5 @@
 ﻿using WebAPI.OptionsSetup.Authentication;
+using WebAPI.OptionsSetup.Authorization;
 using WebAPI.OptionsSetup.Jwt;
 using WebAPI.OptionsSetup.Swagger;
 
@@ -31,6 +32,9 @@ namespace WebAPI
             services.ConfigureOptions<AuthenticationOptionsSetup>();
             services.ConfigureOptions<JwtOptionsSetup>();
             services.ConfigureOptions<JwtBearerOptionsSetup>();
+
+            // Authorization
+            services.ConfigureOptions<AuthorizationOptionsSetup>();
 
             // Prometheus
 

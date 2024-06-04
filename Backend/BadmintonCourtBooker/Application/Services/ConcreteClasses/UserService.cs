@@ -1,11 +1,15 @@
 ﻿using Application.ErrorHandlers;
 using Application.RequestDTOs.Auth;
 using Application.ResponseDTOs.Auth;
+using Application.ResponseDTOs;
 using Application.Services.Interfaces;
 using AutoMapper;
 using Domain.Enums;
 using Infrastructure.Data.UnitOfWork;
 using Microsoft.AspNetCore.Http;
+using Domain.Entities;
+using BC = BCrypt.Net.BCrypt;
+using System.Diagnostics.Metrics;
 
 namespace Application.Services.ConcreteClasses
 {
@@ -22,6 +26,48 @@ namespace Application.Services.ConcreteClasses
             this.jwtService = jwtService;
             this.contextAccessor = contextAccessor;
             this.mapper = mapper;
+        }
+
+        public async Task<CustomerRegisterResponse?> RegisterCustomer(CustomerRegisterRequest registerRequest)
+        {
+            // Check if email is unique
+            if (await unitOfWork.UserRepository.GetByEmailAsync(registerRequest.Email) != null)
+            {
+                throw new BadRequestException($"Account's email {registerRequest.Email} has been used! Please use different email to register.");
+            }
+
+            // Check if phone number is unique
+            if (await unitOfWork.UserRepository.GetByPhoneNumberAsync(registerRequest.PhoneNumber) != null)
+            {
+                throw new BadRequestException($"Account's phone number {registerRequest.PhoneNumber} has been used! Please use different phone number to register.");
+            }
+
+            User newUser = new User()
+            {
+                Id = Guid.NewGuid(),
+                Email = registerRequest.Email,
+                PasswordHash = BC.EnhancedHashPassword(registerRequest.Password),
+                FirstName = registerRequest.FirstName,
+                LastName = registerRequest.LastName,
+                PhoneNumber = registerRequest.PhoneNumber,
+                Role = UserRole.Customer,
+                Status = UserStatus.Unverified,
+            };
+
+            try
+            {
+                await unitOfWork.UserRepository.AddAsync(newUser);
+                int result = await unitOfWork.SaveChangeAsync();
+                if (result == 0)
+                {
+                    throw new Exception("Unexpected error occurred when trying to add new customer!");
+                }
+                return mapper.Map<CustomerRegisterResponse>(newUser);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
         }
 
         public async Task<LoginResponse> UserLogin(UserLoginRequest loginRequest)
