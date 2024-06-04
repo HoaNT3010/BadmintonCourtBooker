@@ -17,6 +17,11 @@ namespace Infrastructure.Repositories.ConcreteClasses
             return await dbSet.FirstOrDefaultAsync(u => u.Email == email);
         }
 
+        public async Task<User?> GetByPhoneNumberAsync(string phoneNumber)
+        {
+            return await dbSet.FirstOrDefaultAsync(u => u.PhoneNumber == phoneNumber);
+        }
+
         public async Task<User?> Login(string email, string password)
         {
             User? user = await GetByEmailAsync(email);

@@ -1,5 +1,6 @@
 ﻿using Application.ErrorHandlers;
 using Application.RequestDTOs.Auth;
+using Application.ResponseDTOs;
 using Application.ResponseDTOs.Auth;
 using Application.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -37,12 +38,22 @@ namespace WebAPI.Controllers
             return Ok(result);
         }
 
+        /// <summary>
+        /// Register new customer account for BadmintonCourtBooker system
+        /// </summary>
+        /// <param name="registerRequest">Customer's account information</param>
+        /// <returns>Newly created customer's account data</returns>
         [HttpPost]
         [Route("register/customer")]
         [AllowAnonymous]
-        public async Task<IActionResult> RegisterCustomer([FromBody] CustomerRegisterRequest registerRequest)
+        [Produces("application/json")]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(CustomerRegisterResponse))]
+        [ProducesResponseType((int)HttpStatusCode.BadRequest, Type = typeof(ErrorDetail))]
+        [ProducesResponseType((int)HttpStatusCode.InternalServerError, Type = typeof(ErrorDetail))]
+        public async Task<ActionResult<CustomerRegisterResponse>> RegisterCustomer([FromBody] CustomerRegisterRequest registerRequest)
         {
-            return Ok();
+            var result = await userService.RegisterCustomer(registerRequest);
+            return Ok(result);
         }
     }
 }
