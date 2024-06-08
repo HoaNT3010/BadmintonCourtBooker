@@ -11,11 +11,15 @@ namespace Infrastructure.Data.UnitOfWork
         private IDbContextTransaction? databaseTransaction = null;
 
         public IUserRepository UserRepository { get; } = null!;
+        public ICourtRepository CourtRepository { get; } = null!;
 
-        public UnitOfWork(ApplicationDbContext context, IUserRepository userRepository)
+        public UnitOfWork(ApplicationDbContext context,
+            IUserRepository userRepository,
+            ICourtRepository courtRepository)
         {
             this.context = context;
             UserRepository = userRepository;
+            CourtRepository = courtRepository;
         }
 
 
