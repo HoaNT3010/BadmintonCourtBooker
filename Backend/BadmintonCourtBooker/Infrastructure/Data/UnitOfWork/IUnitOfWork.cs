@@ -6,6 +6,7 @@ namespace Infrastructure.Data.UnitOfWork
     {
         #region Repositories
         public IUserRepository UserRepository { get; }
+        public ICourtRepository CourtRepository { get; }
         #endregion
 
         #region Methods

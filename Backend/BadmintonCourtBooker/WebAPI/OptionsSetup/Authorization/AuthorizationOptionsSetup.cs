@@ -8,6 +8,7 @@ namespace WebAPI.OptionsSetup.Authorization
     {
         public const string UnverifiedCustomer = "UnverifiedCustomer";
         public const string VerifiedCustomer = "VerifiedCustomer";
+        public const string CourtCreator = "CourtCreator";
 
         public void Configure(AuthorizationOptions options)
         {
@@ -21,6 +22,11 @@ namespace WebAPI.OptionsSetup.Authorization
             {
                 policy.RequireClaim("Role", UserRole.Customer.ToString());
                 policy.RequireClaim("Status", UserStatus.Active.ToString());
+            });
+
+            options.AddPolicy(CourtCreator, policy =>
+            {
+                policy.RequireClaim("Role", UserRole.SystemAdmin.ToString(), UserRole.CourtManager.ToString());
             });
         }
     }

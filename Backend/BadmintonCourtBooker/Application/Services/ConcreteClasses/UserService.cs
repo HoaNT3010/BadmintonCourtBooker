@@ -6,10 +6,8 @@ using Application.Services.Interfaces;
 using AutoMapper;
 using Domain.Enums;
 using Infrastructure.Data.UnitOfWork;
-using Microsoft.AspNetCore.Http;
 using Domain.Entities;
 using BC = BCrypt.Net.BCrypt;
-using System.Diagnostics.Metrics;
 
 namespace Application.Services.ConcreteClasses
 {
@@ -17,14 +15,12 @@ namespace Application.Services.ConcreteClasses
     {
         private readonly IUnitOfWork unitOfWork;
         private readonly IJwtService jwtService;
-        private readonly IHttpContextAccessor contextAccessor;
         private readonly IMapper mapper;
 
-        public UserService(IUnitOfWork unitOfWork, IJwtService jwtService, IHttpContextAccessor contextAccessor, IMapper mapper)
+        public UserService(IUnitOfWork unitOfWork, IJwtService jwtService, IMapper mapper)
         {
             this.unitOfWork = unitOfWork;
             this.jwtService = jwtService;
-            this.contextAccessor = contextAccessor;
             this.mapper = mapper;
         }
 

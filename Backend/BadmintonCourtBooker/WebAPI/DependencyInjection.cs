@@ -1,4 +1,5 @@
-﻿using WebAPI.OptionsSetup.Authentication;
+﻿using System.Text.Json.Serialization;
+using WebAPI.OptionsSetup.Authentication;
 using WebAPI.OptionsSetup.Authorization;
 using WebAPI.OptionsSetup.Jwt;
 using WebAPI.OptionsSetup.Swagger;
@@ -19,7 +20,11 @@ namespace WebAPI
             });
 
             // Controller
-            services.AddControllers();
+            services.AddControllers()
+                .AddJsonOptions(options =>
+                {
+                    options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+                });
             services.AddHttpContextAccessor();
             services.AddEndpointsApiExplorer();
 

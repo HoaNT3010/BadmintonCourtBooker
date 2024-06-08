@@ -55,7 +55,7 @@ namespace WebAPI.OptionsSetup.Swagger
                         Reference = new OpenApiReference
                         {
                             Type = ReferenceType.SecurityScheme,
-                            Id = BearerTokenScheme,
+                            Id = BearerTokenName,
                         }
                     },
                     new string[] {}

@@ -8,6 +8,8 @@ namespace Application.Utilities
         const string DATE_WITH_NAME_FORMAT = "dd/MM/yyyy dddd";
         const string DATETIME_FORMAT = "dd/MM/yyyy HH:mm:ss";
         const string DATETIME_WITH_NAME_FORMAT = "dd/MM/yyyy HH:mm:ss dddd";
+        const string TIME_FORMAT = @"hh\:mm\:ss";
+        const string TIME_FORMAT_WITH_DATE = @"dd\:hh\:mm\:ss";
 
         /// <summary>
         /// Formats a nullable DateTime value as a string using the specified date format.
@@ -99,6 +101,26 @@ namespace Application.Utilities
             {
                 return default;
             }
+        }
+
+        /// <summary>
+        /// Formats a nullable TimeSpan value as a string using the specified time format.
+        /// </summary>
+        /// <param name="timeSpan">The nullable TimeSpan value to format.</param>
+        /// <returns>A string representation of the TimeSpan value in the format "hh:mm:ss" (Ex: "01:30:00").</returns>
+        public static string FormatTime(TimeSpan? timeSpan)
+        {
+            return timeSpan?.ToString(TIME_FORMAT) ?? string.Empty;
+        }
+
+        /// <summary>
+        /// Formats a nullable TimeSpan value as a string using the specified time format.
+        /// </summary>
+        /// <param name="timeSpan">The nullable TimeSpan value to format.</param>
+        /// <returns>A string representation of the TimeSpan value in the format "dd:hh:mm:ss" (Ex: "02:01:30:00").</returns>
+        public static string FormatTimeWithDay(TimeSpan? timeSpan)
+        {
+            return timeSpan?.ToString(TIME_FORMAT_WITH_DATE) ?? string.Empty;
         }
     }
 }
