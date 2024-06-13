@@ -19,12 +19,27 @@ namespace Infrastructure.Data.UnitOfWork
 
         public IEmployeeRepository EmployeeRepository { get; } = null!;
 
+        public IBookingMethodRepository BookingMethodRepository { get; } = null!;
+
+        public IPaymentMethodRepository PaymentMethodRepository { get; } = null!;
+
+        public IBookingRepository BookingRepository { get; } = null!;
+
+        public ITransactionRepository TransactionRepository { get; } = null!;
+
+        public ITransactionDetailRepository TransactionDetailRepository { get; } = null!;
+
         public UnitOfWork(ApplicationDbContext context,
             IUserRepository userRepository,
             ICourtRepository courtRepository,
             IScheduleRepository scheduleRepository,
             ISlotRepository slotRepository,
-            IEmployeeRepository employeeRepository)
+            IEmployeeRepository employeeRepository,
+            IBookingMethodRepository bookingMethodRepository,
+            IPaymentMethodRepository paymentMethodRepository,
+            IBookingRepository bookingRepository,
+            ITransactionRepository transactionRepository,
+            ITransactionDetailRepository transactionDetailRepository)
         {
             this.context = context;
             UserRepository = userRepository;
@@ -32,6 +47,11 @@ namespace Infrastructure.Data.UnitOfWork
             ScheduleRepository = scheduleRepository;
             SlotRepository = slotRepository;
             EmployeeRepository = employeeRepository;
+            BookingMethodRepository = bookingMethodRepository;
+            PaymentMethodRepository = paymentMethodRepository;
+            BookingRepository = bookingRepository;
+            TransactionRepository = transactionRepository;
+            TransactionDetailRepository = transactionDetailRepository;
         }
 
 

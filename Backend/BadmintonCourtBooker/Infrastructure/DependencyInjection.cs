@@ -20,6 +20,11 @@ namespace Infrastructure
             services.AddScoped<IScheduleRepository, ScheduleRepository>();
             services.AddScoped<ISlotRepository, SlotRepository>();
             services.AddScoped<IEmployeeRepository, EmployeeRepository>();
+            services.AddScoped<IBookingMethodRepository, BookingMethodRepository>();
+            services.AddScoped<IPaymentMethodRepository, PaymentMethodRepository>();
+            services.AddScoped<IBookingRepository, BookingRepository>();
+            services.AddScoped<ITransactionRepository, TransactionRepository>();
+            services.AddScoped<ITransactionDetailRepository, TransactionDetailRepository>();
 
             // Unit of work
             services.AddScoped<IUnitOfWork, UnitOfWork>();
