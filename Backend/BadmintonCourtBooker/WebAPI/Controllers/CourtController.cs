@@ -38,10 +38,20 @@ namespace WebAPI.Controllers
             return Ok(result);
         }
 
+        /// <summary>
+        /// Add schedules to an already existing badminton court. Only manager and system admin can use this feature.
+        /// </summary>
+        /// <param name="id">Badminton court's ID.</param>
+        /// <param name="createRequest">New schedules to be added to the court.</param>
+        /// <returns>Court detail information with newly added schedules.</returns>
         [HttpPost]
         [Route("{id:guid}/add-schedules")]
         [Produces("application/json")]
         [Authorize(policy: AuthorizationOptionsSetup.CourtAdministrator)]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(CourtDetail))]
+        [ProducesResponseType((int)HttpStatusCode.BadRequest, Type = typeof(ErrorDetail))]
+        [ProducesResponseType((int)HttpStatusCode.Unauthorized, Type = typeof(ErrorDetail))]
+        [ProducesResponseType((int)HttpStatusCode.InternalServerError, Type = typeof(ErrorDetail))]
         public async Task<ActionResult<CourtDetail>> AddCourtSchedules([FromRoute] Guid id, [FromBody] CourtScheduleCreateRequest createRequest)
         {
             var result = await courtService.AddCourtSchedule(id, createRequest);

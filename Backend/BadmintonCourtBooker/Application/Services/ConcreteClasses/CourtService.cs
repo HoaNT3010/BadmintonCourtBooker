@@ -123,6 +123,18 @@ namespace Application.Services.ConcreteClasses
                     }
                 }
             }
+
+            // If user is not court creator or manager, check if user is system admin
+            if (!canEditCourt)
+            {
+                var currentUser = await unitOfWork.UserRepository.GetByIdAsync(currentUserId);
+                if (currentUser != null && currentUser.Role == UserRole.SystemAdmin)
+                {
+                    canEditCourt = true;
+                }
+            }
+
+            // If all conditions not satisfied, user is unauthorized to edit court
             if (!canEditCourt)
             {
                 throw new UnauthorizedException("Cannot edit court information. User is not court creator or manager!");
@@ -186,6 +198,7 @@ namespace Application.Services.ConcreteClasses
             newCourt.CourtStatus = CourtStatus.Inactive;
             newCourt.CreatorId = user.Id;
 
+            // Add creator to court employee list as court manager
             newCourt.Employees = new List<Employee>()
             {
                 new Employee()
@@ -194,6 +207,17 @@ namespace Application.Services.ConcreteClasses
                     UserId = user.Id,
                     Role = EmployeeRole.Manager,
                     Status = EmployeeStatus.Active
+                }
+            };
+
+            // Add default on-court payment method
+            newCourt.PaymentMethods = new List<PaymentMethod>()
+            {
+                new PaymentMethod()
+                {
+                    MethodType = PaymentMethodType.OnCourt,
+                    CourtId = newCourt.Id,
+                    Account = "On-court Payment",
                 }
             };
 
