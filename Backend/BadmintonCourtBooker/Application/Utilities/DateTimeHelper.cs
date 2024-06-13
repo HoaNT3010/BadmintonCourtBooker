@@ -1,4 +1,5 @@
-﻿using System.Globalization;
+﻿using Microsoft.AspNetCore.Http;
+using System.Globalization;
 
 namespace Application.Utilities
 {
@@ -121,6 +122,42 @@ namespace Application.Utilities
         public static string FormatTimeWithDay(TimeSpan? timeSpan)
         {
             return timeSpan?.ToString(TIME_FORMAT_WITH_DATE) ?? string.Empty;
+        }
+
+        public static TimeSpan? ConvertTimeString(string timeString)
+        {
+            if (string.IsNullOrEmpty(timeString))
+            {
+                return default;
+            }
+
+            TimeSpan timeSpan;
+            if (TimeSpan.TryParseExact(timeString, TIME_FORMAT, CultureInfo.InvariantCulture, TimeSpanStyles.None, out timeSpan))
+            {
+                return timeSpan;
+            }
+            else
+            {
+                return default;
+            }
+        }
+
+        public static TimeSpan? ConvertTimeWithDateString(string timeString)
+        {
+            if (string.IsNullOrEmpty(timeString))
+            {
+                return default;
+            }
+
+            TimeSpan timeSpan;
+            if (TimeSpan.TryParseExact(timeString, TIME_FORMAT_WITH_DATE, CultureInfo.InvariantCulture, TimeSpanStyles.None, out timeSpan))
+            {
+                return timeSpan;
+            }
+            else
+            {
+                return default;
+            }
         }
     }
 }

@@ -22,25 +22,25 @@ namespace Domain.Entities
 
         #region NavigationProperties
 
-        public Guid CourtId { get; set; }
+        public Guid? CourtId { get; set; }
         [ForeignKey(nameof(CourtId))]
         [DeleteBehavior(DeleteBehavior.NoAction)]
-        public virtual Court Court { get; set; } = null!;
+        public virtual Court? Court { get; set; }
 
-        public int SlotId { get; set; }
+        public int? SlotId { get; set; }
         [ForeignKey(nameof(SlotId))]
         [DeleteBehavior(DeleteBehavior.NoAction)]
-        public virtual Slot Slot { get; set; } = null!;
+        public virtual Slot? Slot { get; set; }
 
-        public int BookingMethodId { get; set; }
+        public int? BookingMethodId { get; set; }
         [ForeignKey(nameof(BookingMethodId))]
         [DeleteBehavior(DeleteBehavior.NoAction)]
-        public virtual BookingMethod BookingMethod { get; set; } = null!;
+        public virtual BookingMethod? BookingMethod { get; set; }
 
-        public Guid CustomerId { get; set; }
+        public Guid? CustomerId { get; set; }
         [ForeignKey(nameof(CustomerId))]
         [DeleteBehavior(DeleteBehavior.NoAction)]
-        public virtual User Customer { get; set; } = null!;
+        public virtual User? Customer { get; set; }
 
         public int? TransactionDetailId { get; set; }
         [ForeignKey(nameof(TransactionDetailId))]

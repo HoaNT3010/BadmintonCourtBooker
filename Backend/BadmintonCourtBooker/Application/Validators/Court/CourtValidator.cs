@@ -34,4 +34,31 @@ namespace Application.Validators.Court
                 .IsInEnum().WithMessage("Slot type must be a valid value!");
         }
     }
+
+    public class CourtScheduleCreateValidator : AbstractValidator<CourtScheduleCreateRequest>
+    {
+        public CourtScheduleCreateValidator()
+        {
+            RuleFor(r => r.Schedules).NotNull().WithMessage("Schedules list cannot be null!")
+                .NotEmpty().WithMessage("Schedules list cannot be empty!")
+                .Must(r => r.GroupBy(s => s.DayOfWeek).All(group => group.Count() == 1)).WithMessage("Schedules list cannot contains duplicated days of week.");
+
+            RuleForEach(r => r.Schedules).SetValidator(new CourtScheduleValidator());
+        }
+    }
+
+    public class CourtScheduleValidator : AbstractValidator<CourtScheduleCreate>
+    {
+        public CourtScheduleValidator()
+        {
+            RuleFor(s => s.DayOfWeek).IsInEnum().WithMessage("Day of week must be a valid day!");
+
+            RuleFor(s => s.OpenTime).NotEmpty().WithMessage("Open time cannot be empty")
+                .Matches(@"^(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d$").WithMessage("Open time must match the format hh:mm:ss (ex 01:30:00)");
+
+            RuleFor(s => s.CloseTime).NotEmpty().WithMessage("Close time cannot be empty")
+                .Matches(@"^(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d$").WithMessage("Close time must match the format hh:mm:ss (ex 20:30:00)");
+
+        }
+    }
 }

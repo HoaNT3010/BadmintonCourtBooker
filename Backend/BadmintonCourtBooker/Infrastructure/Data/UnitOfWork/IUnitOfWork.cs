@@ -7,6 +7,8 @@ namespace Infrastructure.Data.UnitOfWork
         #region Repositories
         public IUserRepository UserRepository { get; }
         public ICourtRepository CourtRepository { get; }
+        public IScheduleRepository ScheduleRepository { get; }
+        public ISlotRepository SlotRepository { get; }
         #endregion
 
         #region Methods
@@ -14,6 +16,7 @@ namespace Infrastructure.Data.UnitOfWork
         Task BeginTransactionAsync();
         Task CommitAsync();
         Task RollbackAsync();
+        void Dispose();
         #endregion
     }
 }
