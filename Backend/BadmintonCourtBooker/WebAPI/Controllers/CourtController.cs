@@ -57,5 +57,22 @@ namespace WebAPI.Controllers
             var result = await courtService.AddCourtSchedule(id, createRequest);
             return Ok(result);
         }
+
+        /// <summary>
+        /// Get badminton court detail information based on court' ID.
+        /// </summary>
+        /// <param name="id">Badminton court's ID.</param>
+        /// <returns>Court detail information</returns>
+        [HttpGet]
+        [Route("{id:guid}")]
+        [Produces("application/json")]
+        [AllowAnonymous]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(CourtDetail))]
+        [ProducesResponseType((int)HttpStatusCode.NotFound, Type = typeof(ErrorDetail))]
+        [ProducesResponseType((int)HttpStatusCode.InternalServerError, Type = typeof(ErrorDetail))]
+        public async Task<ActionResult<CourtDetail>> GetCourtDetail(Guid id)
+        {
+            return Ok(await courtService.GetCourtDetail(id));
+        }
     }
 }

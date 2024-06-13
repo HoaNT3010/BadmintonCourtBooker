@@ -258,5 +258,15 @@ namespace Application.Services.ConcreteClasses
                     throw new BadRequestException("Invalid slot type! Failed to generate slot duration.");
             }
         }
+
+        public async Task<CourtDetail?> GetCourtDetail(Guid id)
+        {
+            var court = await unitOfWork.CourtRepository.GetCourtFullDetail(id);
+            if (court == null)
+            {
+                throw new NotFoundException($"Cannot find badminton court with ID: {id.ToString()}");
+            }
+            return mapper.Map<CourtDetail>(court);
+        }
     }
 }

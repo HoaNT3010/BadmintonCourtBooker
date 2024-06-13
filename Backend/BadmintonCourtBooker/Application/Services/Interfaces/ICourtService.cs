@@ -7,5 +7,6 @@ namespace Application.Services.Interfaces
     {
         Task<CourtCreateResponse?> CreateNewCourt(CourtCreateRequest createRequest);
         Task<CourtDetail?> AddCourtSchedule(Guid id, CourtScheduleCreateRequest createRequest);
+        Task<CourtDetail?> GetCourtDetail(Guid id);
     }
 }
