@@ -59,7 +59,7 @@ namespace WebAPI.Controllers
         }
 
         /// <summary>
-        /// Get badminton court detail information based on court' ID.
+        /// Get badminton court detail information based on court's ID.
         /// </summary>
         /// <param name="id">Badminton court's ID.</param>
         /// <returns>Court detail information</returns>
@@ -73,6 +73,25 @@ namespace WebAPI.Controllers
         public async Task<ActionResult<CourtDetail>> GetCourtDetail(Guid id)
         {
             return Ok(await courtService.GetCourtDetail(id));
+        }
+
+        /// <summary>
+        /// Add new employees to an already existing badminton court. Only manager and system admin can use this feature.
+        /// </summary>
+        /// <param name="id">Badminton court's ID.</param>
+        /// <param name="request">New employees to be added as court employees</param>
+        /// <returns>Court detail information with newly added employees.</returns>
+        [HttpPost]
+        [Route("{id:guid}/add-employees")]
+        [Produces("application/json")]
+        [Authorize(policy: AuthorizationOptionsSetup.CourtAdministrator)]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(CourtDetail))]
+        [ProducesResponseType((int)HttpStatusCode.BadRequest, Type = typeof(ErrorDetail))]
+        [ProducesResponseType((int)HttpStatusCode.Unauthorized, Type = typeof(ErrorDetail))]
+        [ProducesResponseType((int)HttpStatusCode.InternalServerError, Type = typeof(ErrorDetail))]
+        public async Task<ActionResult<CourtDetail>> AddCourtEmployees([FromRoute] Guid id, [FromBody] AddCourtEmployeeRequest request)
+        {
+            return Ok(await courtService.AddCourtEmployees(id, request));
         }
     }
 }

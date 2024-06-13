@@ -19,6 +19,7 @@ namespace Infrastructure
             services.AddScoped<ICourtRepository, CourtRepository>();
             services.AddScoped<IScheduleRepository, ScheduleRepository>();
             services.AddScoped<ISlotRepository, SlotRepository>();
+            services.AddScoped<IEmployeeRepository, EmployeeRepository>();
 
             // Unit of work
             services.AddScoped<IUnitOfWork, UnitOfWork>();

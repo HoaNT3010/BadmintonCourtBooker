@@ -17,17 +17,21 @@ namespace Infrastructure.Data.UnitOfWork
 
         public ISlotRepository SlotRepository { get; } = null!;
 
+        public IEmployeeRepository EmployeeRepository { get; } = null!;
+
         public UnitOfWork(ApplicationDbContext context,
             IUserRepository userRepository,
             ICourtRepository courtRepository,
             IScheduleRepository scheduleRepository,
-            ISlotRepository slotRepository)
+            ISlotRepository slotRepository,
+            IEmployeeRepository employeeRepository)
         {
             this.context = context;
             UserRepository = userRepository;
             CourtRepository = courtRepository;
             ScheduleRepository = scheduleRepository;
             SlotRepository = slotRepository;
+            EmployeeRepository = employeeRepository;
         }
 
 
