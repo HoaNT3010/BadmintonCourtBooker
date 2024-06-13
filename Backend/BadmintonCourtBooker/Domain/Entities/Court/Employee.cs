@@ -28,10 +28,10 @@ namespace Domain.Entities
         [DeleteBehavior(DeleteBehavior.Cascade)]
         public virtual Court Court { get; set; } = null!;
 
-        public Guid UserId { get; set; }
+        public Guid? UserId { get; set; }
         [ForeignKey(nameof(UserId))]
         [DeleteBehavior(DeleteBehavior.NoAction)]
-        public virtual User User { get; set; } = null!;
+        public virtual User? User { get; set; }
 
         #endregion
     }

@@ -17,6 +17,8 @@ namespace Infrastructure
             // Repositories
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<ICourtRepository, CourtRepository>();
+            services.AddScoped<IScheduleRepository, ScheduleRepository>();
+            services.AddScoped<ISlotRepository, SlotRepository>();
 
             // Unit of work
             services.AddScoped<IUnitOfWork, UnitOfWork>();
