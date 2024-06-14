@@ -9,6 +9,12 @@ namespace Infrastructure.Data.UnitOfWork
         public ICourtRepository CourtRepository { get; }
         public IScheduleRepository ScheduleRepository { get; }
         public ISlotRepository SlotRepository { get; }
+        public IEmployeeRepository EmployeeRepository { get; }
+        public IBookingMethodRepository BookingMethodRepository { get; }
+        public IPaymentMethodRepository PaymentMethodRepository { get; }
+        public IBookingRepository BookingRepository { get; }
+        public ITransactionRepository TransactionRepository { get; }
+        public ITransactionDetailRepository TransactionDetailRepository { get; }
         #endregion
 
         #region Methods

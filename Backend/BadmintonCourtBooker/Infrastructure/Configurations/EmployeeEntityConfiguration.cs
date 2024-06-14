@@ -9,6 +9,9 @@ namespace Infrastructure.Configurations
         public void Configure(EntityTypeBuilder<Employee> builder)
         {
             builder.ToTable("CourtEmployee");
+
+            builder.HasIndex(e => new { e.CourtId, e.UserId })
+                .IsUnique();
         }
     }
 }

@@ -42,7 +42,7 @@ namespace Application.Services.ConcreteClasses
 
             // Check if court already has a schedule for any new schedule
             var courtSchedules = await unitOfWork.ScheduleRepository.GetCourtSchedules(court.Id);
-            CheckExistingCourtSchedules(courtSchedules, createRequest.Schedules);
+            CheckExistingCourtSchedules(courtSchedules!, createRequest.Schedules);
 
             // Validate court new schedules
             createRequest.CheckAndSwapOpenCloseTime();
@@ -123,6 +123,18 @@ namespace Application.Services.ConcreteClasses
                     }
                 }
             }
+
+            // If user is not court creator or manager, check if user is system admin
+            if (!canEditCourt)
+            {
+                var currentUser = await unitOfWork.UserRepository.GetByIdAsync(currentUserId);
+                if (currentUser != null && currentUser.Role == UserRole.SystemAdmin)
+                {
+                    canEditCourt = true;
+                }
+            }
+
+            // If all conditions not satisfied, user is unauthorized to edit court
             if (!canEditCourt)
             {
                 throw new UnauthorizedException("Cannot edit court information. User is not court creator or manager!");
@@ -138,7 +150,7 @@ namespace Application.Services.ConcreteClasses
                 var closeTime = DateTimeHelper.ConvertTimeString(schedule.CloseTime);
                 var duration = closeTime - openTime;
 
-                if (TimeSpan.Compare(slotDuration, (TimeSpan)duration) > 0)
+                if (TimeSpan.Compare(slotDuration, (TimeSpan)duration!) > 0)
                 {
                     throw new BadRequestException($"The total duration of schedule day {schedule.DayOfWeek.ToString()} ({DateTimeHelper.FormatTime(duration)}) cannot be shorter than the court's slot duration ({DateTimeHelper.FormatTime(slotDuration)})!");
                 }
@@ -186,6 +198,7 @@ namespace Application.Services.ConcreteClasses
             newCourt.CourtStatus = CourtStatus.Inactive;
             newCourt.CreatorId = user.Id;
 
+            // Add creator to court employee list as court manager
             newCourt.Employees = new List<Employee>()
             {
                 new Employee()
@@ -194,6 +207,17 @@ namespace Application.Services.ConcreteClasses
                     UserId = user.Id,
                     Role = EmployeeRole.Manager,
                     Status = EmployeeStatus.Active
+                }
+            };
+
+            // Add default on-court payment method
+            newCourt.PaymentMethods = new List<PaymentMethod>()
+            {
+                new PaymentMethod()
+                {
+                    MethodType = PaymentMethodType.OnCourt,
+                    CourtId = newCourt.Id,
+                    Account = "On-court Payment",
                 }
             };
 
@@ -233,6 +257,120 @@ namespace Application.Services.ConcreteClasses
                 default:
                     throw new BadRequestException("Invalid slot type! Failed to generate slot duration.");
             }
+        }
+
+        public async Task<CourtDetail?> GetCourtDetail(Guid id)
+        {
+            var court = await unitOfWork.CourtRepository.GetCourtFullDetail(id);
+            if (court == null)
+            {
+                throw new NotFoundException($"Cannot find badminton court with ID: {id.ToString()}");
+            }
+            return mapper.Map<CourtDetail>(court);
+        }
+
+        public async Task<CourtDetail?> AddCourtEmployees(Guid id, AddCourtEmployeeRequest request)
+        {
+            // Verify request sender account status
+            jwtService.CheckActiveAccountStatus();
+
+            Guid currentUserId = jwtService.GetCurrentUserId();
+
+            var court = await unitOfWork.CourtRepository.GetByIdAsync(id);
+
+            if (court == null)
+            {
+                throw new BadRequestException($"Cannot find badminton court with id: {id}");
+            }
+
+            await CanUserEditCourt(currentUserId, court);
+
+            // Check if court already has employee registered in new employee list
+            var courtEmployees = await unitOfWork.EmployeeRepository.GetCourtEmployees(court.Id);
+            CheckExistingCourtEmployees(courtEmployees!, request.CourtEmployees);
+
+            // Validate if new employees exist in the system
+            await ValidateCourtNewEmployees(request.CourtEmployees);
+
+            var newEmployees = GenerateCourtNewEmployees(court.Id, request.CourtEmployees);
+            try
+            {
+                await unitOfWork.BeginTransactionAsync();
+                await unitOfWork.EmployeeRepository.AddManyAsync(newEmployees);
+                await unitOfWork.SaveChangeAsync();
+                await unitOfWork.CommitAsync();
+                var updatedCourt = await unitOfWork.CourtRepository.GetCourtFullDetail(court.Id);
+                return mapper.Map<CourtDetail>(updatedCourt);
+            }
+            catch (Exception ex)
+            {
+                await unitOfWork.RollbackAsync();
+                throw new Exception($"An unexpected error occurred when trying to add new court employees: {ex.Message}");
+            }
+        }
+
+        private void CheckExistingCourtEmployees(List<Employee> courtEmployees, List<CourtEmployeeRequest> newEmployees)
+        {
+            if (courtEmployees == null || courtEmployees.Count == 0)
+            {
+                return;
+            }
+
+            foreach (var employee in courtEmployees)
+            {
+                if (newEmployees.Any(ne => ne.UserId == employee.UserId.ToString()))
+                {
+                    throw new BadRequestException($"Failed to add new employees. The court already registered user with ID {employee.UserId.ToString()} as employee.");
+                }
+            }
+        }
+
+        private async Task ValidateCourtNewEmployees(List<CourtEmployeeRequest> newEmployees)
+        {
+            if (newEmployees == null || newEmployees.Count <= 0)
+            {
+                throw new BadRequestException("Failed to add new court employees. The new employees list does not contains any employee!");
+            }
+            foreach (var employee in newEmployees)
+            {
+                var user = await unitOfWork.UserRepository.GetByIdAsync(Guid.Parse(employee.UserId));
+                if (user == null)
+                {
+                    throw new NotFoundException($"Failed to add new court employees. Cannot found information of employee with user ID: {employee.UserId}");
+                }
+
+                if (user.Status != UserStatus.Active)
+                {
+                    throw new NotFoundException($"Failed to add new court employees. Employee with user ID: {employee.UserId} account status is NOT ACTIVE. Only user with active account can be registered as court employee!");
+                }
+
+                if (user.Role == UserRole.None || user.Role == UserRole.SystemAdmin || user.Role == UserRole.Customer)
+                {
+                    throw new NotFoundException($"Failed to add new court employees. Employee with user ID: {employee.UserId} is not registered as court staff or manager. Only staff or manager can be court employee!");
+                }
+            }
+        }
+
+        private List<Employee> GenerateCourtNewEmployees(Guid courtId, List<CourtEmployeeRequest> newEmployees)
+        {
+            if (newEmployees == null || newEmployees.Count <= 0)
+            {
+                throw new BadRequestException("Failed to add new court employees. The new employees list does not contains any employee!");
+            }
+            List<Employee> employees = new List<Employee>();
+
+            foreach (var newEmployee in newEmployees)
+            {
+                Employee employee = new Employee()
+                {
+                    CourtId = courtId,
+                    UserId = Guid.Parse(newEmployee.UserId),
+                    Role = newEmployee.Role,
+                    Status = EmployeeStatus.Active,
+                };
+                employees.Add(employee);
+            }
+            return employees;
         }
     }
 }

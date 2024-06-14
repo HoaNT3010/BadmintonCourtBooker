@@ -31,8 +31,8 @@ namespace Application.Mappers
                 .ForMember(d => d.EndDate, opt => opt.MapFrom(s => DateTimeHelper.FormatDate(s.EndDate)))
                 .ForMember(d => d.Role, opt => opt.MapFrom(s => s.Role.ToString()))
                 .ForMember(d => d.Status, opt => opt.MapFrom(s => s.Status.ToString()))
-                .ForMember(d => d.Email, opt => opt.MapFrom(s => s.User.Email))
-                .ForMember(d => d.FullName, opt => opt.MapFrom(s => $"{s.User.LastName} {s.User.FirstName}"));
+                .ForMember(d => d.Email, opt => opt.MapFrom(s => s.User!.Email))
+                .ForMember(d => d.FullName, opt => opt.MapFrom(s => $"{s.User!.LastName} {s.User.FirstName}"));
 
             CreateMap<Slot, SlotDetail>()
                 .ForMember(d => d.StartTime, opt => opt.MapFrom(s => DateTimeHelper.FormatTime(s.StartTime)))
