@@ -85,4 +85,24 @@ namespace Application.Validators.Court
                 .NotEqual(EmployeeRole.None).WithMessage("Employee's role cannot be None!");
         }
     }
+
+    public class PaymentMethodCreateRequestValidator : AbstractValidator<PaymentMethodCreateRequest>
+    {
+        public PaymentMethodCreateRequestValidator()
+        {
+            RuleFor(r => r.PaymentMethods).NotNull().WithMessage("Court's payment methods list cannot be null!")
+                .NotEmpty().WithMessage("Court's payment methods list cannot be empty!");
+
+            RuleForEach(r => r.PaymentMethods).SetValidator(new PaymentMethodCreateValidator());
+        }
+    }
+
+    public class PaymentMethodCreateValidator : AbstractValidator<PaymentMethodCreate>
+    {
+        public PaymentMethodCreateValidator()
+        {
+            RuleFor(e => e.Type).IsInEnum().WithMessage("Payment method's type must be a valid one!")
+                .NotEqual(PaymentMethodType.None).WithMessage("Payment method's type cannot be None!");
+        }
+    }
 }

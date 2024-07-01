@@ -36,10 +36,10 @@ namespace Domain.Entities
 
         #region NavigationProperties
 
-        public Guid CreatorId { get; set; }
+        public Guid? CreatorId { get; set; }
         [ForeignKey(nameof(CreatorId))]
-        [DeleteBehavior(DeleteBehavior.NoAction)]
-        public virtual User Creator { get; set; } = null!;
+        [DeleteBehavior(DeleteBehavior.SetNull)]
+        public virtual User? Creator { get; set; }
 
         public virtual ICollection<PaymentMethod> PaymentMethods { get; set; } = new List<PaymentMethod>();
         public virtual ICollection<BookingMethod> BookingMethods { get; set; } = new List<BookingMethod>();

@@ -372,5 +372,83 @@ namespace Application.Services.ConcreteClasses
             }
             return employees;
         }
+
+        public async Task<CourtDetail?> AddCourtPaymentMethods(Guid id, PaymentMethodCreateRequest request)
+        {
+            // Verify request sender account status
+            jwtService.CheckActiveAccountStatus();
+
+            Guid currentUserId = jwtService.GetCurrentUserId();
+
+            var court = await unitOfWork.CourtRepository.GetByIdAsync(id);
+
+            if (court == null)
+            {
+                throw new BadRequestException($"Cannot find badminton court with id: {id}");
+            }
+
+            await CanUserEditCourt(currentUserId, court);
+
+            // Check for existing payment method
+            var paymentMethods = await unitOfWork.PaymentMethodRepository.GetPaymentMethods(id);
+            CheckExistingPaymentMethods(paymentMethods!, request.PaymentMethods);
+
+            var newPaymentMethods = GeneratePaymentMethods(id, request.PaymentMethods);
+
+            try
+            {
+                await unitOfWork.BeginTransactionAsync();
+                await unitOfWork.PaymentMethodRepository.AddManyAsync(newPaymentMethods);
+                await unitOfWork.SaveChangeAsync();
+                await unitOfWork.CommitAsync();
+                var updatedCourt = await unitOfWork.CourtRepository.GetCourtFullDetail(court.Id);
+                return mapper.Map<CourtDetail>(updatedCourt);
+            }
+            catch (Exception ex)
+            {
+                await unitOfWork.RollbackAsync();
+                throw new Exception($"An unexpected error occurred when trying to add new court payment methods: {ex.Message}");
+            }
+        }
+
+        private void CheckExistingPaymentMethods(List<PaymentMethod> currentPaymentMethods, List<PaymentMethodCreate> newPaymentMethods)
+        {
+            if (currentPaymentMethods == null || currentPaymentMethods.Count == 0)
+            {
+                return;
+            }
+
+            foreach (var method in currentPaymentMethods)
+            {
+                if (newPaymentMethods.Any(ne => ne.Type == method.MethodType && ne.Account == method.Account))
+                {
+                    throw new BadRequestException($"Failed to add new payment method. The court already registered payment method with Type: {method.MethodType.ToString()} and Account: {method.Account.ToString()}.");
+                }
+            }
+        }
+
+        private List<PaymentMethod> GeneratePaymentMethods(Guid courtId, List<PaymentMethodCreate> newPaymentMethods)
+        {
+            if (newPaymentMethods == null || newPaymentMethods.Count == 0)
+            {
+                throw new BadRequestException("Failed to add new court payment method. The new payment methods list does not contains any method!");
+            }
+
+            List<PaymentMethod> paymentMethods = new List<PaymentMethod>();
+
+            foreach (var method in newPaymentMethods)
+            {
+                PaymentMethod paymentMethod = new PaymentMethod()
+                {
+                    MethodType = method.Type,
+                    Account = method.Account,
+                    Status = PaymentMethodStatus.Active,
+                    CourtId = courtId,
+                };
+                paymentMethods.Add(paymentMethod);
+            }
+
+            return paymentMethods;
+        }
     }
 }

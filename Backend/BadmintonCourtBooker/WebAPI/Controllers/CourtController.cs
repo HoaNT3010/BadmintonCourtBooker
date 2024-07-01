@@ -79,7 +79,7 @@ namespace WebAPI.Controllers
         /// Add new employees to an already existing badminton court. Only manager and system admin can use this feature.
         /// </summary>
         /// <param name="id">Badminton court's ID.</param>
-        /// <param name="request">New employees to be added as court employees</param>
+        /// <param name="request">New employees to be added as court employees.</param>
         /// <returns>Court detail information with newly added employees.</returns>
         [HttpPost]
         [Route("{id:guid}/add-employees")]
@@ -92,6 +92,25 @@ namespace WebAPI.Controllers
         public async Task<ActionResult<CourtDetail>> AddCourtEmployees([FromRoute] Guid id, [FromBody] AddCourtEmployeeRequest request)
         {
             return Ok(await courtService.AddCourtEmployees(id, request));
+        }
+
+        /// <summary>
+        /// Add new payment methods to an already existing badminton court. Only manager and system admin can use this feature.
+        /// </summary>
+        /// <param name="id">Badminton court's ID.</param>
+        /// <param name="request">New payment methods to be added as court payment methods.</param>
+        /// <returns>Court detail information with newly added payment methods.</returns>
+        [HttpPost]
+        [Route("{id:guid}/add-payments")]
+        [Produces("application/json")]
+        [Authorize(policy: AuthorizationOptionsSetup.CourtAdministrator)]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(CourtDetail))]
+        [ProducesResponseType((int)HttpStatusCode.BadRequest, Type = typeof(ErrorDetail))]
+        [ProducesResponseType((int)HttpStatusCode.Unauthorized, Type = typeof(ErrorDetail))]
+        [ProducesResponseType((int)HttpStatusCode.InternalServerError, Type = typeof(ErrorDetail))]
+        public async Task<ActionResult> AddCourtPaymentMethods([FromRoute] Guid id, [FromBody] PaymentMethodCreateRequest request)
+        {
+            return Ok(await courtService.AddCourtPaymentMethods(id, request));
         }
     }
 }
