@@ -24,24 +24,88 @@ namespace Application.Services.ConcreteClasses
             this.jwtService = jwtService;
         }
 
+        #region Court
+
+        public async Task<CourtCreateResponse?> CreateNewCourt(CourtCreateRequest createRequest)
+        {
+            // Get user info
+            jwtService.CheckActiveAccountStatus();
+            User? user = await unitOfWork.UserRepository.GetByIdAsync(jwtService.GetCurrentUserId());
+            if (user == null)
+            {
+                throw new BadRequestException("Failed to get user data using bearer token!");
+            }
+
+            Court newCourt = mapper.Map<Court>(createRequest);
+            newCourt.Id = Guid.NewGuid();
+            newCourt.SlotDuration = AssignSlotDuration(createRequest.SlotType);
+            newCourt.CourtStatus = CourtStatus.Inactive;
+            newCourt.CreatorId = user.Id;
+
+            // Add creator to court employee list as court manager
+            newCourt.Employees = new List<Employee>()
+            {
+                new Employee()
+                {
+                    CourtId = newCourt.Id,
+                    UserId = user.Id,
+                    Role = EmployeeRole.Manager,
+                    Status = EmployeeStatus.Active
+                }
+            };
+
+            // Add default on-court payment method
+            newCourt.PaymentMethods = new List<PaymentMethod>()
+            {
+                new PaymentMethod()
+                {
+                    MethodType = PaymentMethodType.OnCourt,
+                    CourtId = newCourt.Id,
+                    Account = "On-court Payment",
+                }
+            };
+
+            try
+            {
+                await unitOfWork.CourtRepository.AddAsync(newCourt);
+                int result = await unitOfWork.SaveChangeAsync();
+                if (result == 0)
+                {
+                    throw new Exception("Unexpected error occurred when trying to add new court!");
+                }
+                var response = mapper.Map<CourtCreateResponse>(newCourt);
+                response.CreatorFullName = user.LastName + " " + user.FirstName;
+                response.CreatorEmail = user.Email;
+                return response;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+
+        public async Task<CourtDetail?> GetCourtDetail(Guid id)
+        {
+            var court = await unitOfWork.CourtRepository.GetCourtFullDetail(id);
+            if (court == null)
+            {
+                throw new NotFoundException($"Cannot find badminton court with ID: {id.ToString()}");
+            }
+            return mapper.Map<CourtDetail>(court);
+        }
+
+        #endregion
+
+        #region CourtSchedules
+
         public async Task<CourtDetail?> AddCourtSchedule(Guid id, CourtScheduleCreateRequest createRequest)
         {
-            // Verify request sender account status
-            jwtService.CheckActiveAccountStatus();
-
-            Guid currentUserId = jwtService.GetCurrentUserId();
+            await CheckUserCourtEditingPermission(id);
 
             var court = await unitOfWork.CourtRepository.GetByIdAsync(id);
 
-            if (court == null)
-            {
-                throw new BadRequestException($"Cannot find badminton court with id: {id}");
-            }
-
-            await CanUserEditCourt(currentUserId, court);
-
             // Check if court already has a schedule for any new schedule
-            var courtSchedules = await unitOfWork.ScheduleRepository.GetCourtSchedules(court.Id);
+            var courtSchedules = await unitOfWork.ScheduleRepository.GetCourtSchedules(court!.Id);
             CheckExistingCourtSchedules(courtSchedules!, createRequest.Schedules);
 
             // Validate court new schedules
@@ -106,41 +170,6 @@ namespace Application.Services.ConcreteClasses
             return slots;
         }
 
-        private async Task CanUserEditCourt(Guid currentUserId, Court? court)
-        {
-            // If user is court creator then user can edit
-            bool canEditCourt = court!.CreatorId == currentUserId;
-
-            // If user is not court creator, check if user is court manager
-            if (!canEditCourt)
-            {
-                var managersList = await unitOfWork.CourtRepository.GetCourtManagers(court.Id);
-                foreach (var manager in managersList)
-                {
-                    if (manager.UserId == currentUserId)
-                    {
-                        canEditCourt = true;
-                    }
-                }
-            }
-
-            // If user is not court creator or manager, check if user is system admin
-            if (!canEditCourt)
-            {
-                var currentUser = await unitOfWork.UserRepository.GetByIdAsync(currentUserId);
-                if (currentUser != null && currentUser.Role == UserRole.SystemAdmin)
-                {
-                    canEditCourt = true;
-                }
-            }
-
-            // If all conditions not satisfied, user is unauthorized to edit court
-            if (!canEditCourt)
-            {
-                throw new UnauthorizedException("Cannot edit court information. User is not court creator or manager!");
-            }
-        }
-
         private void ValidateSchedulesDuration(TimeSpan slotDuration, List<CourtScheduleCreate> schedules)
         {
             foreach (var schedule in schedules)
@@ -182,64 +211,6 @@ namespace Application.Services.ConcreteClasses
             }
         }
 
-        public async Task<CourtCreateResponse?> CreateNewCourt(CourtCreateRequest createRequest)
-        {
-            // Get user info
-            jwtService.CheckActiveAccountStatus();
-            User? user = await unitOfWork.UserRepository.GetByIdAsync(jwtService.GetCurrentUserId());
-            if (user == null)
-            {
-                throw new BadRequestException("Failed to get user data using bearer token!");
-            }
-
-            Court newCourt = mapper.Map<Court>(createRequest);
-            newCourt.Id = Guid.NewGuid();
-            newCourt.SlotDuration = AssignSlotDuration(createRequest.SlotType);
-            newCourt.CourtStatus = CourtStatus.Inactive;
-            newCourt.CreatorId = user.Id;
-
-            // Add creator to court employee list as court manager
-            newCourt.Employees = new List<Employee>()
-            {
-                new Employee()
-                {
-                    CourtId = newCourt.Id,
-                    UserId = user.Id,
-                    Role = EmployeeRole.Manager,
-                    Status = EmployeeStatus.Active
-                }
-            };
-
-            // Add default on-court payment method
-            newCourt.PaymentMethods = new List<PaymentMethod>()
-            {
-                new PaymentMethod()
-                {
-                    MethodType = PaymentMethodType.OnCourt,
-                    CourtId = newCourt.Id,
-                    Account = "On-court Payment",
-                }
-            };
-
-            try
-            {
-                await unitOfWork.CourtRepository.AddAsync(newCourt);
-                int result = await unitOfWork.SaveChangeAsync();
-                if (result == 0)
-                {
-                    throw new Exception("Unexpected error occurred when trying to add new court!");
-                }
-                var response = mapper.Map<CourtCreateResponse>(newCourt);
-                response.CreatorFullName = user.LastName + " " + user.FirstName;
-                response.CreatorEmail = user.Email;
-                return response;
-            }
-            catch (Exception ex)
-            {
-                throw new Exception(ex.Message);
-            }
-        }
-
         private TimeSpan AssignSlotDuration(SlotType slotType)
         {
             switch (slotType)
@@ -259,47 +230,29 @@ namespace Application.Services.ConcreteClasses
             }
         }
 
-        public async Task<CourtDetail?> GetCourtDetail(Guid id)
-        {
-            var court = await unitOfWork.CourtRepository.GetCourtFullDetail(id);
-            if (court == null)
-            {
-                throw new NotFoundException($"Cannot find badminton court with ID: {id.ToString()}");
-            }
-            return mapper.Map<CourtDetail>(court);
-        }
+        #endregion
+
+        #region CourtEmployees
 
         public async Task<CourtDetail?> AddCourtEmployees(Guid id, AddCourtEmployeeRequest request)
         {
-            // Verify request sender account status
-            jwtService.CheckActiveAccountStatus();
-
-            Guid currentUserId = jwtService.GetCurrentUserId();
-
-            var court = await unitOfWork.CourtRepository.GetByIdAsync(id);
-
-            if (court == null)
-            {
-                throw new BadRequestException($"Cannot find badminton court with id: {id}");
-            }
-
-            await CanUserEditCourt(currentUserId, court);
+            await CheckUserCourtEditingPermission(id);
 
             // Check if court already has employee registered in new employee list
-            var courtEmployees = await unitOfWork.EmployeeRepository.GetCourtEmployees(court.Id);
+            var courtEmployees = await unitOfWork.EmployeeRepository.GetCourtEmployees(id);
             CheckExistingCourtEmployees(courtEmployees!, request.CourtEmployees);
 
             // Validate if new employees exist in the system
             await ValidateCourtNewEmployees(request.CourtEmployees);
 
-            var newEmployees = GenerateCourtNewEmployees(court.Id, request.CourtEmployees);
+            var newEmployees = GenerateCourtNewEmployees(id, request.CourtEmployees);
             try
             {
                 await unitOfWork.BeginTransactionAsync();
                 await unitOfWork.EmployeeRepository.AddManyAsync(newEmployees);
                 await unitOfWork.SaveChangeAsync();
                 await unitOfWork.CommitAsync();
-                var updatedCourt = await unitOfWork.CourtRepository.GetCourtFullDetail(court.Id);
+                var updatedCourt = await unitOfWork.CourtRepository.GetCourtFullDetail(id);
                 return mapper.Map<CourtDetail>(updatedCourt);
             }
             catch (Exception ex)
@@ -373,21 +326,13 @@ namespace Application.Services.ConcreteClasses
             return employees;
         }
 
+        #endregion
+
+        #region CourtPaymentMethods
+
         public async Task<CourtDetail?> AddCourtPaymentMethods(Guid id, PaymentMethodCreateRequest request)
         {
-            // Verify request sender account status
-            jwtService.CheckActiveAccountStatus();
-
-            Guid currentUserId = jwtService.GetCurrentUserId();
-
-            var court = await unitOfWork.CourtRepository.GetByIdAsync(id);
-
-            if (court == null)
-            {
-                throw new BadRequestException($"Cannot find badminton court with id: {id}");
-            }
-
-            await CanUserEditCourt(currentUserId, court);
+            await CheckUserCourtEditingPermission(id);
 
             // Check for existing payment method
             var paymentMethods = await unitOfWork.PaymentMethodRepository.GetPaymentMethods(id);
@@ -401,7 +346,7 @@ namespace Application.Services.ConcreteClasses
                 await unitOfWork.PaymentMethodRepository.AddManyAsync(newPaymentMethods);
                 await unitOfWork.SaveChangeAsync();
                 await unitOfWork.CommitAsync();
-                var updatedCourt = await unitOfWork.CourtRepository.GetCourtFullDetail(court.Id);
+                var updatedCourt = await unitOfWork.CourtRepository.GetCourtFullDetail(id);
                 return mapper.Map<CourtDetail>(updatedCourt);
             }
             catch (Exception ex)
@@ -450,5 +395,133 @@ namespace Application.Services.ConcreteClasses
 
             return paymentMethods;
         }
+
+        #endregion
+
+        #region CourtBookingMethods
+
+        public async Task<CourtDetail?> AddCourtBookingMethods(Guid id, BookingMethodCreateRequest request)
+        {
+            await CheckUserCourtEditingPermission(id);
+
+            // Check for existing booking method
+            var bookingMethod = await unitOfWork.BookingMethodRepository.GetBookingMethods(id);
+            CheckExistingBookingMethods(bookingMethod!, request.BookingMethods);
+
+            var newBookingMethods = GenerateBookingMethods(id, request.BookingMethods);
+
+            try
+            {
+                await unitOfWork.BeginTransactionAsync();
+                await unitOfWork.BookingMethodRepository.AddManyAsync(newBookingMethods);
+                await unitOfWork.SaveChangeAsync();
+                await unitOfWork.CommitAsync();
+                var updatedCourt = await unitOfWork.CourtRepository.GetCourtFullDetail(id);
+                return mapper.Map<CourtDetail>(updatedCourt);
+            }
+            catch (Exception ex)
+            {
+                await unitOfWork.RollbackAsync();
+                throw new Exception($"An unexpected error occurred when trying to add new court booking methods: {ex.Message}");
+            }
+        }
+
+        private void CheckExistingBookingMethods(List<BookingMethod> currentBookingMethods, List<BookingMethodCreate> newBookingMethods)
+        {
+            if (currentBookingMethods == null || currentBookingMethods.Count == 0)
+            {
+                return;
+            }
+
+            foreach (var method in currentBookingMethods)
+            {
+                if (newBookingMethods.Any(nm => nm.Type == method.MethodType))
+                {
+                    throw new BadRequestException($"Failed to add new booking method. The court already registered booking method with Type: {method.MethodType.ToString()}.");
+                }
+            }
+        }
+
+        private List<BookingMethod> GenerateBookingMethods(Guid courtId, List<BookingMethodCreate> newBookingMethods)
+        {
+            if (newBookingMethods == null || newBookingMethods.Count == 0)
+            {
+                throw new BadRequestException("Failed to add new court booking method. The new booking methods list does not contains any method!");
+            }
+            List<BookingMethod> bookingMethods = new List<BookingMethod>();
+
+            foreach (var method in newBookingMethods)
+            {
+                BookingMethod bookingMethod = new BookingMethod()
+                {
+                    MethodType = method.Type,
+                    PricePerSlot = method.PricePerSlot,
+                    TimePerSlot = method.TimePerSlot,
+                    Status = BookingMethodStatus.Active,
+                    CourtId = courtId,
+                };
+                bookingMethods.Add(bookingMethod);
+            }
+
+            return bookingMethods;
+        }
+
+        #endregion
+
+        #region UserPermission
+
+        private async Task CheckUserCourtEditingPermission(Guid courtId)
+        {
+            // Verify request sender account status
+            jwtService.CheckActiveAccountStatus();
+
+            Guid currentUserId = jwtService.GetCurrentUserId();
+
+            var court = await unitOfWork.CourtRepository.GetByIdAsync(courtId);
+
+            if (court == null)
+            {
+                throw new BadRequestException($"Cannot find badminton court with id: {courtId}");
+            }
+
+            await CanUserEditCourt(currentUserId, court);
+        }
+
+        private async Task CanUserEditCourt(Guid currentUserId, Court? court)
+        {
+            // If user is court creator then user can edit
+            bool canEditCourt = court!.CreatorId == currentUserId;
+
+            // If user is not court creator, check if user is court manager
+            if (!canEditCourt)
+            {
+                var managersList = await unitOfWork.CourtRepository.GetCourtManagers(court.Id);
+                foreach (var manager in managersList)
+                {
+                    if (manager.UserId == currentUserId)
+                    {
+                        canEditCourt = true;
+                    }
+                }
+            }
+
+            // If user is not court creator or manager, check if user is system admin
+            if (!canEditCourt)
+            {
+                var currentUser = await unitOfWork.UserRepository.GetByIdAsync(currentUserId);
+                if (currentUser != null && currentUser.Role == UserRole.SystemAdmin)
+                {
+                    canEditCourt = true;
+                }
+            }
+
+            // If all conditions not satisfied, user is unauthorized to edit court
+            if (!canEditCourt)
+            {
+                throw new UnauthorizedException("Cannot edit court information. User is not court creator or manager!");
+            }
+        }
+
+        #endregion
     }
 }

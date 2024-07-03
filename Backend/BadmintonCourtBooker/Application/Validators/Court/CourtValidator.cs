@@ -105,4 +105,29 @@ namespace Application.Validators.Court
                 .NotEqual(PaymentMethodType.None).WithMessage("Payment method's type cannot be None!");
         }
     }
+
+    public class BookingMethodCreateRequestValidator : AbstractValidator<BookingMethodCreateRequest>
+    {
+        public BookingMethodCreateRequestValidator()
+        {
+            RuleFor(r => r.BookingMethods).NotNull().WithMessage("Court's booking methods list cannot be null!")
+                .NotEmpty().WithMessage("Court's booking methods list cannot be empty!");
+
+            RuleForEach(r => r.BookingMethods).SetValidator(new BookingMethodCreateValidator());
+        }
+    }
+
+    public class BookingMethodCreateValidator : AbstractValidator<BookingMethodCreate>
+    {
+        public BookingMethodCreateValidator()
+        {
+            RuleFor(e => e.Type).IsInEnum().WithMessage("Booking method's type must be a valid one!")
+                .NotEqual(BookingMethodType.None).WithMessage("Booking method's type cannot be None!");
+
+            RuleFor(e => e.PricePerSlot).GreaterThan(0).WithMessage("Monetary price of a slot must be greater than 0");
+
+            RuleFor(e => e.TimePerSlot).GreaterThan(0).WithMessage("Time price of a slot must be greater than 0")
+                .Must(value => Math.Round(value, 1) == value).WithMessage("Time price can has at most 1 decimal place");
+        }
+    }
 }

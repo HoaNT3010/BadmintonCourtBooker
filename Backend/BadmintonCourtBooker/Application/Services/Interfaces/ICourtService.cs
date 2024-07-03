@@ -10,5 +10,6 @@ namespace Application.Services.Interfaces
         Task<CourtDetail?> GetCourtDetail(Guid id);
         Task<CourtDetail?> AddCourtEmployees(Guid id, AddCourtEmployeeRequest request);
         Task<CourtDetail?> AddCourtPaymentMethods(Guid id, PaymentMethodCreateRequest request);
+        Task<CourtDetail?> AddCourtBookingMethods(Guid id, BookingMethodCreateRequest request);
     }
 }
