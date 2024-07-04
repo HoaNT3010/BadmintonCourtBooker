@@ -30,7 +30,7 @@ namespace Domain.Entities
 
         public Guid? UserId { get; set; }
         [ForeignKey(nameof(UserId))]
-        [DeleteBehavior(DeleteBehavior.NoAction)]
+        [DeleteBehavior(DeleteBehavior.SetNull)]
         public virtual User? User { get; set; }
 
         #endregion

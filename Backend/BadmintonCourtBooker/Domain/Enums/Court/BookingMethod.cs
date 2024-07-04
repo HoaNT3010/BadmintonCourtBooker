@@ -16,4 +16,11 @@
         /// </summary>
         Flexible
     }
+
+    public enum BookingMethodStatus
+    {
+        None = 0,
+        Active,
+        Deactivated,
+    }
 }

@@ -21,6 +21,8 @@ namespace Domain.Entities
         [Range(0, 999999.9)]
         public decimal TimePerSlot { get; set; } = decimal.Zero;
 
+        public BookingMethodStatus Status { get; set; } = BookingMethodStatus.None;
+
         #region NavigationProperties
 
         public Guid CourtId { get; set; }
