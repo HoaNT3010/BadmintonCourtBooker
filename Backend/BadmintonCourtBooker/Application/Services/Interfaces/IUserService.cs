@@ -14,5 +14,7 @@ namespace Application.Services.Interfaces
         Task<PagedResult<ListCustomerResponse>> GetListUser(int pageNumber, int pageSize);
         Task<bool> BanUserById(Guid requestId);
         Task<PagedResult<ListCustomerResponse>> SearchByNameByEmailByPhone(SearchCustomerRequest searchCustomerRequest, int pageNumber, int pageSize);
+        Task<bool> UpdateUserById(Guid userId, CustomerRegisterRequest updatedUser);
+        Task<bool> UpdateCurrentUserById(CustomerRegisterRequest updatedUser);
     }
 }
