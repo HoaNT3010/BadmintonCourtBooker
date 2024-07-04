@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace Domain.Entities
 {
@@ -37,10 +38,13 @@ namespace Domain.Entities
         public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
 
         #region NavigationProperties
-
+        [JsonIgnore]
         public virtual ICollection<Court> CreatedCourts { get; set; } = new List<Court>();
+        [JsonIgnore]
         public virtual ICollection<Transaction> Transactions { get; set; } = new List<Transaction>();
+        [JsonIgnore]
         public virtual ICollection<Booking> Bookings { get; set; } = new List<Booking>();
+        [JsonIgnore]
         public virtual ICollection<Employee> Employees { get; set; } = new List<Employee>();
 
         #endregion

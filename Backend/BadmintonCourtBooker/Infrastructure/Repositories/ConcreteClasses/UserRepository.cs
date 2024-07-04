@@ -35,5 +35,38 @@ namespace Infrastructure.Repositories.ConcreteClasses
             }
             return user;
         }
+
+        public async Task<User?> GetByIdAsync(Guid id)
+        {
+            return await dbSet.FirstOrDefaultAsync(u => u.Id == id);
+        }
+
+        public IQueryable<User> GetListUser()
+        {
+            return dbSet.AsQueryable();
+        }
+
+        public IQueryable<User> SearchByNameByEmailByPhone(string name, string email, string phone)
+        {
+            var query = dbSet.AsNoTracking().AsQueryable();
+
+            if (!string.IsNullOrEmpty(email))
+            {
+                query = query.Where(c => c.Email.Contains(email));
+            }
+
+            if (!string.IsNullOrEmpty(phone))
+            {
+                query = query.Where(c => c.PhoneNumber.Contains(phone));
+            }
+
+            if (!string.IsNullOrEmpty(name))
+            {
+                query = query.Where(c => c.FirstName.Contains(name));
+            }
+
+            return query;
+        }
+
     }
 }
