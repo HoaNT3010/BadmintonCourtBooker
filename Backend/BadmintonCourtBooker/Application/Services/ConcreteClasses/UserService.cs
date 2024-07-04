@@ -8,6 +8,8 @@ using Domain.Enums;
 using Infrastructure.Data.UnitOfWork;
 using Domain.Entities;
 using BC = BCrypt.Net.BCrypt;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
+using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace Application.Services.ConcreteClasses
 {
@@ -86,5 +88,92 @@ namespace Application.Services.ConcreteClasses
                 UserStatus = user.Status.ToString(),
             };
         }
+
+        public async Task<User?> GetCurrentUserProfileById()
+        {
+            // Verify request sender account status
+            jwtService.CheckActiveAccountStatus();
+
+            Guid currentUserId = jwtService.GetCurrentUserId();
+            var existProfile = await unitOfWork.UserRepository.GetByIdAsync(currentUserId);
+            if (existProfile == null)
+            {
+                throw new NotFoundException("User Not Exist");
+            }
+
+            return existProfile;
+        }
+
+        public async Task<User?> GetUserDetailById(Guid requestId)
+        {
+            var existProfile = await unitOfWork.UserRepository.GetByIdAsync(requestId);
+            if (existProfile == null)
+            {
+                throw new NotFoundException("User Not Exist");
+            }
+
+            return existProfile;
+        }
+
+        public async Task<PagedResult<ListCustomerResponse>> GetListUser(int pageNumber, int pageSize)
+        {
+            var listProfile = unitOfWork.UserRepository.GetListUser();
+            if (listProfile == null)
+            {
+                throw new NotFoundException("List is empty");
+            }           
+            var pagedUsers = await Paging.Paging.GetPagedResultAsync(listProfile, pageNumber, pageSize);
+            var response = mapper.Map<List<ListCustomerResponse>>(pagedUsers.Items);
+            return new PagedResult<ListCustomerResponse>
+            {
+                Items = response,
+                TotalCount = pagedUsers.TotalCount,
+                PageNumber = pageNumber,
+                PageSize = pageSize
+            };
+        }
+
+
+        public async Task<bool> BanUserById(Guid requestId)
+        {
+            var existProfile = await unitOfWork.UserRepository.GetByIdAsync(requestId);
+            if (existProfile == null)
+            {
+                throw new NotFoundException("User Not Exist");               
+            }
+            if (existProfile.Status.Equals(UserStatus.Active)){
+                existProfile.Status = UserStatus.Suspended;
+            }
+            else
+            {
+                existProfile.Status = UserStatus.Active;
+            }            
+
+            unitOfWork.UserRepository.Update(existProfile);
+            await unitOfWork.SaveChangeAsync();
+            return true;
+        }
+
+        public async Task<PagedResult<ListCustomerResponse>> SearchByNameByEmailByPhone(SearchCustomerRequest searchCustomerRequest, int pageNumber, int pageSize)
+        {
+           
+                var customers =  unitOfWork.UserRepository.SearchByNameByEmailByPhone(searchCustomerRequest.FirstName, searchCustomerRequest.Email, searchCustomerRequest.PhoneNumber);
+                if (customers == null || !customers.Any())
+                {
+                    throw new NotFoundException("List is empty");
+                }
+
+                var pagedUsers = await Paging.Paging.GetPagedResultAsync(customers, pageNumber, pageSize);
+
+                var response = mapper.Map<List<ListCustomerResponse>>(pagedUsers.Items);
+
+                return new PagedResult<ListCustomerResponse>
+                {
+                    Items = response,
+                    TotalCount = pagedUsers.TotalCount,
+                    PageNumber = pageNumber,
+                    PageSize = pageSize
+                };
+            }
     }
 }
