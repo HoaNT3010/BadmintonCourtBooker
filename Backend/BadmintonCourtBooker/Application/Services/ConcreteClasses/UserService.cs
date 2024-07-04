@@ -175,5 +175,80 @@ namespace Application.Services.ConcreteClasses
                     PageSize = pageSize
                 };
             }
+
+
+        public async Task<bool> UpdateUserById(Guid userId, User updatedUser)
+        {
+            var existingUser = await unitOfWork.UserRepository.GetByIdAsync(userId);
+            if (existingUser == null)
+            {
+                throw new NotFoundException("User not found");
+            }
+
+            // update by using data from updatedUser
+            existingUser.Email = updatedUser.Email;
+            existingUser.PasswordHash = updatedUser.PasswordHash;
+            existingUser.FirstName = updatedUser.FirstName;
+            existingUser.LastName = updatedUser.LastName;
+            existingUser.PhoneNumber = updatedUser.PhoneNumber;
+            existingUser.Role = updatedUser.Role;
+            existingUser.Status = updatedUser.Status;
+            existingUser.BookingTime = updatedUser.BookingTime;
+            existingUser.CreatedDate = updatedUser.CreatedDate;
+
+            unitOfWork.UserRepository.Update(existingUser);
+
+            await unitOfWork.SaveChangeAsync();
+
+            return true;
+        }
+
+        public async Task<bool> UpdateUserById(Guid userId, CustomerRegisterRequest updatedUser)
+        {
+            var existingUser = await unitOfWork.UserRepository.GetByIdAsync(userId);
+            if (existingUser == null)
+            {
+                throw new NotFoundException("User not found");
+            }
+
+            // update by using data from updatedUser
+            existingUser.Email = updatedUser.Email;
+            existingUser.PasswordHash = BC.EnhancedHashPassword(updatedUser.Password);
+            existingUser.FirstName = updatedUser.FirstName;
+            existingUser.LastName = updatedUser.LastName;
+            existingUser.PhoneNumber = updatedUser.PhoneNumber;
+
+            unitOfWork.UserRepository.Update(existingUser);
+
+            await unitOfWork.SaveChangeAsync();
+
+            return true;
+        }
+
+        public async Task<bool> UpdateCurrentUserById(CustomerRegisterRequest updatedUser)
+        {
+            // Verify request sender account status
+            jwtService.CheckActiveAccountStatus();
+
+            Guid currentUserId = jwtService.GetCurrentUserId();
+            var existingUser = await unitOfWork.UserRepository.GetByIdAsync(currentUserId);
+            if (existingUser == null)
+            {
+                throw new NotFoundException("User not found");
+            }
+
+            // update by using data from updatedUser
+            existingUser.Email = updatedUser.Email;
+            existingUser.PasswordHash = BC.EnhancedHashPassword(updatedUser.Password);
+            existingUser.FirstName = updatedUser.FirstName;
+            existingUser.LastName = updatedUser.LastName;
+            existingUser.PhoneNumber = updatedUser.PhoneNumber;
+
+            unitOfWork.UserRepository.Update(existingUser);
+
+            await unitOfWork.SaveChangeAsync();
+
+            return true;
+        }
     }
 }

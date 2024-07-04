@@ -97,5 +97,35 @@ namespace WebAPI.Controllers
             var result = await userService.SearchByNameByEmailByPhone(searchCustomerRequest,pageNumber, pageSize);
             return Ok(result);
         }
+
+
+        /// <summary>
+        /// update exist user. Only Administrator can use this feature.
+        /// </summary>
+        /// <param id="idRequest">Id of profile need to be update.</param>
+        /// <returns>Result of update user by id process.</returns>
+        [HttpPost]
+        [Route("update-user-by-id/{idRequest:guid}")]
+        [Produces("application/json")]
+        [Authorize(policy: AuthorizationOptionsSetup.CourtAdministrator)]
+        public async Task<ActionResult<User>> UpdateUserById([FromRoute] Guid idRequest, [FromQuery] CustomerRegisterRequest customer)
+        {
+            var result = await userService.UpdateUserById(idRequest, customer);
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// update current user. Only Administrator can use this feature.
+        /// </summary>
+        /// <returns>Result of update current user by id process.</returns>
+        [HttpPost]
+        [Route("update-current-user")]
+        [Produces("application/json")]
+        [Authorize(policy: AuthorizationOptionsSetup.CourtAdministrator)]
+        public async Task<ActionResult<User>> UpdateCurrentUserById([FromQuery] CustomerRegisterRequest customer)
+        {
+            var result = await userService.UpdateCurrentUserById(customer);
+            return Ok(result);
+        }
     }
 }
