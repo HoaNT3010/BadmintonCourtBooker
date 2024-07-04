@@ -16,6 +16,8 @@ namespace Domain.Entities
         [Column(TypeName = "varchar(100)")]
         public string Account { get; set; } = null!;
 
+        public PaymentMethodStatus Status { get; set; } = PaymentMethodStatus.None;
+
         #region NavigationProperties
 
         public Guid CourtId { get; set; }
