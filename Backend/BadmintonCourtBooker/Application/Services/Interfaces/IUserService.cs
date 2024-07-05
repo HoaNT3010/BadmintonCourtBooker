@@ -9,8 +9,8 @@ namespace Application.Services.Interfaces
     {
         Task<LoginResponse> UserLogin(UserLoginRequest loginRequest);
         Task<CustomerRegisterResponse?> RegisterCustomer(CustomerRegisterRequest registerRequest);
-        Task<User?> GetCurrentUserProfileById();
-        Task<User?> GetUserDetailById(Guid requestId);
+        Task<ProfileResponse?> GetCurrentUserProfileById();
+        Task<ProfileResponse?> GetUserDetailById(Guid requestId);
         Task<PagedResult<ListCustomerResponse>> GetListUser(int pageNumber, int pageSize);
         Task<bool> BanUserById(Guid requestId);
         Task<PagedResult<ListCustomerResponse>> SearchByNameByEmailByPhone(SearchCustomerRequest searchCustomerRequest, int pageNumber, int pageSize);

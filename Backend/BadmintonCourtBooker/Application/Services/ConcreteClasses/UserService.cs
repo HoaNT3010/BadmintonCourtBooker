@@ -89,7 +89,7 @@ namespace Application.Services.ConcreteClasses
             };
         }
 
-        public async Task<User?> GetCurrentUserProfileById()
+        public async Task<ProfileResponse?> GetCurrentUserProfileById()
         {
             // Verify request sender account status
             jwtService.CheckActiveAccountStatus();
@@ -100,19 +100,19 @@ namespace Application.Services.ConcreteClasses
             {
                 throw new NotFoundException("User Not Exist");
             }
-
-            return existProfile;
+            var response = mapper.Map<ProfileResponse>(existProfile);
+            return response;
         }
 
-        public async Task<User?> GetUserDetailById(Guid requestId)
+        public async Task<ProfileResponse?> GetUserDetailById(Guid requestId)
         {
             var existProfile = await unitOfWork.UserRepository.GetByIdAsync(requestId);
             if (existProfile == null)
             {
                 throw new NotFoundException("User Not Exist");
             }
-
-            return existProfile;
+            var response = mapper.Map<ProfileResponse>(existProfile);
+            return response;
         }
 
         public async Task<PagedResult<ListCustomerResponse>> GetListUser(int pageNumber, int pageSize)

@@ -30,10 +30,10 @@ namespace WebAPI.Controllers
         /// </summary>
         /// <returns>Result of get current user profile process.</returns>
         [HttpGet]
-        [Route("get-current-user-profile")]
+        [Route("profile")]
         [Produces("application/json")]
         [Authorize(policy: AuthorizationOptionsSetup.VerifiedCustomer)]        
-        public async Task<ActionResult<User>> GetCurrentUserProfileById()
+        public async Task<ActionResult<ProfileResponse>> GetCurrentUserProfileById()
         {
             var result = await userService.GetCurrentUserProfileById();
             return Ok(result);
@@ -45,10 +45,10 @@ namespace WebAPI.Controllers
         /// <param id="idRequest">Id of profile need to get.</param>
         /// <returns>Result of get profile by id process.</returns>
         [HttpGet]
-        [Route("get-user-profile-by-id/{idRequest:guid}")]
+        [Route("detail/{idRequest:guid}")]
         [Produces("application/json")]
         [Authorize(policy: AuthorizationOptionsSetup.CourtAdministrator)]
-        public async Task<ActionResult<User>> GetUserDetailById([FromRoute] Guid idRequest)
+        public async Task<ActionResult<ProfileResponse>> GetUserDetailById([FromRoute] Guid idRequest)
         {
             var result = await userService.GetUserDetailById(idRequest);
             return Ok(result);
@@ -69,12 +69,12 @@ namespace WebAPI.Controllers
         }
 
         /// <summary>
-        /// Ban exist user. Only Administrator can use this feature.
+        /// Ban or unban exist user. Only Administrator can use this feature.
         /// </summary>
         /// <param id="idRequest">Id of profile need to be banned.</param>
         /// <returns>Result of ban user by id process.</returns>
         [HttpPost]
-        [Route("ban-user-by-id/{idRequest:guid}")]
+        [Route("ban/{idRequest:guid}")]
         [Produces("application/json")]
         [Authorize(policy: AuthorizationOptionsSetup.CourtAdministrator)]
         public async Task<ActionResult<User>> BanUserById([FromRoute] Guid idRequest)
@@ -89,7 +89,7 @@ namespace WebAPI.Controllers
         /// </summary>
         /// <returns>Result list of user.</returns>
         [HttpGet]
-        [Route("search-user-by-name-email--phone")]
+        [Route("search")]
         [Produces("application/json")]
         [Authorize(policy: AuthorizationOptionsSetup.CourtAdministrator)]
         public async Task<ActionResult<User>> SearchByNameByPhoneByEmail([FromQuery] SearchCustomerRequest searchCustomerRequest,[FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 5)
@@ -104,8 +104,8 @@ namespace WebAPI.Controllers
         /// </summary>
         /// <param id="idRequest">Id of profile need to be update.</param>
         /// <returns>Result of update user by id process.</returns>
-        [HttpPost]
-        [Route("update-user-by-id/{idRequest:guid}")]
+        [HttpPut]
+        [Route("update/{idRequest:guid}")]
         [Produces("application/json")]
         [Authorize(policy: AuthorizationOptionsSetup.CourtAdministrator)]
         public async Task<ActionResult<User>> UpdateUserById([FromRoute] Guid idRequest, [FromQuery] CustomerRegisterRequest customer)
@@ -118,10 +118,10 @@ namespace WebAPI.Controllers
         /// update current user. Only Administrator can use this feature.
         /// </summary>
         /// <returns>Result of update current user by id process.</returns>
-        [HttpPost]
-        [Route("update-current-user")]
+        [HttpPut]
+        [Route("update")]
         [Produces("application/json")]
-        [Authorize(policy: AuthorizationOptionsSetup.CourtAdministrator)]
+        [Authorize(policy: AuthorizationOptionsSetup.VerifiedCustomer)]
         public async Task<ActionResult<User>> UpdateCurrentUserById([FromQuery] CustomerRegisterRequest customer)
         {
             var result = await userService.UpdateCurrentUserById(customer);
