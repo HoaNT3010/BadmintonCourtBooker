@@ -33,7 +33,7 @@ namespace WebAPI.Controllers
         [Route("profile")]
         [Produces("application/json")]
         [Authorize(policy: AuthorizationOptionsSetup.VerifiedCustomer)]        
-        public async Task<ActionResult<User>> GetCurrentUserProfileById()
+        public async Task<ActionResult<ProfileResponse>> GetCurrentUserProfileById()
         {
             var result = await userService.GetCurrentUserProfileById();
             return Ok(result);
@@ -48,7 +48,7 @@ namespace WebAPI.Controllers
         [Route("detail/{idRequest:guid}")]
         [Produces("application/json")]
         [Authorize(policy: AuthorizationOptionsSetup.CourtAdministrator)]
-        public async Task<ActionResult<User>> GetUserDetailById([FromRoute] Guid idRequest)
+        public async Task<ActionResult<ProfileResponse>> GetUserDetailById([FromRoute] Guid idRequest)
         {
             var result = await userService.GetUserDetailById(idRequest);
             return Ok(result);
@@ -69,7 +69,7 @@ namespace WebAPI.Controllers
         }
 
         /// <summary>
-        /// Ban exist user. Only Administrator can use this feature.
+        /// Ban or unban exist user. Only Administrator can use this feature.
         /// </summary>
         /// <param id="idRequest">Id of profile need to be banned.</param>
         /// <returns>Result of ban user by id process.</returns>
@@ -104,7 +104,7 @@ namespace WebAPI.Controllers
         /// </summary>
         /// <param id="idRequest">Id of profile need to be update.</param>
         /// <returns>Result of update user by id process.</returns>
-        [HttpPost]
+        [HttpPut]
         [Route("update/{idRequest:guid}")]
         [Produces("application/json")]
         [Authorize(policy: AuthorizationOptionsSetup.CourtAdministrator)]
@@ -118,10 +118,10 @@ namespace WebAPI.Controllers
         /// update current user. Only Administrator can use this feature.
         /// </summary>
         /// <returns>Result of update current user by id process.</returns>
-        [HttpPost]
+        [HttpPut]
         [Route("update")]
         [Produces("application/json")]
-        [Authorize(policy: AuthorizationOptionsSetup.CourtAdministrator)]
+        [Authorize(policy: AuthorizationOptionsSetup.VerifiedCustomer)]
         public async Task<ActionResult<User>> UpdateCurrentUserById([FromQuery] CustomerRegisterRequest customer)
         {
             var result = await userService.UpdateCurrentUserById(customer);
