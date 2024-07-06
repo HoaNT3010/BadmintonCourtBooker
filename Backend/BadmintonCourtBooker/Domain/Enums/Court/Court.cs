@@ -24,4 +24,16 @@
         Inactive,
         Removed,
     }
+
+    public enum CourtOrderBy
+    {
+        CourtName,
+        SlotDuration,
+    }
+
+    public enum SortingOrder
+    {
+        Ascending,
+        Descending,
+    }
 }
