@@ -6,6 +6,7 @@ using Application.ResponseDTOs.Court;
 using Application.Services.ConcreteClasses;
 using Application.Services.Interfaces;
 using Domain.Entities;
+using Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
@@ -32,7 +33,7 @@ namespace WebAPI.Controllers
         [HttpGet]
         [Route("profile")]
         [Produces("application/json")]
-        [Authorize(policy: AuthorizationOptionsSetup.VerifiedCustomer)]        
+        [Authorize(policy: AuthorizationOptionsSetup.VerifiedCustomer)]
         public async Task<ActionResult<ProfileResponse>> GetCurrentUserProfileById()
         {
             var result = await userService.GetCurrentUserProfileById();
@@ -40,14 +41,14 @@ namespace WebAPI.Controllers
         }
 
         /// <summary>
-        /// Find exist user profile. Only Administrator can use this feature.
+        /// Find exist user profile. Only authorize user can use this feature.
         /// </summary>
         /// <param id="idRequest">Id of profile need to get.</param>
         /// <returns>Result of get profile by id process.</returns>
         [HttpGet]
         [Route("detail/{idRequest:guid}")]
         [Produces("application/json")]
-        [Authorize(policy: AuthorizationOptionsSetup.CourtAdministrator)]
+        [Authorize]
         public async Task<ActionResult<ProfileResponse>> GetUserDetailById([FromRoute] Guid idRequest)
         {
             var result = await userService.GetUserDetailById(idRequest);
@@ -63,7 +64,7 @@ namespace WebAPI.Controllers
         [Produces("application/json")]
         [Authorize(policy: AuthorizationOptionsSetup.CourtAdministrator)]
         public async Task<ActionResult<ListCustomerResponse>> GetListUser([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 5)
-        {   
+        {
             var result = await userService.GetListUser(pageNumber, pageSize);
             return Ok(result);
         }
@@ -92,9 +93,9 @@ namespace WebAPI.Controllers
         [Route("search")]
         [Produces("application/json")]
         [Authorize(policy: AuthorizationOptionsSetup.CourtAdministrator)]
-        public async Task<ActionResult<User>> SearchByNameByPhoneByEmail([FromQuery] SearchCustomerRequest searchCustomerRequest,[FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 5)
+        public async Task<ActionResult<User>> SearchByNameByPhoneByEmail([FromQuery] SearchCustomerRequest searchCustomerRequest, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 5)
         {
-            var result = await userService.SearchByNameByEmailByPhone(searchCustomerRequest,pageNumber, pageSize);
+            var result = await userService.SearchByNameByEmailByPhone(searchCustomerRequest, pageNumber, pageSize);
             return Ok(result);
         }
 
@@ -108,7 +109,7 @@ namespace WebAPI.Controllers
         [Route("update/{idRequest:guid}")]
         [Produces("application/json")]
         [Authorize(policy: AuthorizationOptionsSetup.CourtAdministrator)]
-        public async Task<ActionResult<User>> UpdateUserById([FromRoute] Guid idRequest, [FromQuery] CustomerRegisterRequest customer)
+        public async Task<ActionResult<User>> UpdateUserById([FromRoute] Guid idRequest, [FromBody] CustomerUpdateRequest customer)
         {
             var result = await userService.UpdateUserById(idRequest, customer);
             return Ok(result);
@@ -121,10 +122,26 @@ namespace WebAPI.Controllers
         [HttpPut]
         [Route("update")]
         [Produces("application/json")]
-        [Authorize(policy: AuthorizationOptionsSetup.VerifiedCustomer)]
-        public async Task<ActionResult<User>> UpdateCurrentUserById([FromQuery] CustomerRegisterRequest customer)
+        [Authorize]
+        public async Task<ActionResult<User>> UpdateCurrentUserById([FromBody] CustomerUpdateRequest customer)
         {
             var result = await userService.UpdateCurrentUserById(customer);
+            return Ok(result);
+        }
+
+
+        /// <summary>
+        /// update role exist user. Only Administrator can use this feature.
+        /// </summary>
+        /// <param id="idRequest">Id of profile need to be update role.</param>
+        /// <returns>Result of update role user by id process.</returns>
+        [HttpPut]
+        [Route("update-role/{idRequest:guid}")]
+        [Produces("application/json")]
+        [Authorize(policy: AuthorizationOptionsSetup.CourtAdministrator)]
+        public async Task<ActionResult<User>> UpdateRoleUserById([FromRoute] Guid idRequest, UserRole role)
+        {
+            var result = await userService.UpdateRoleUserById(idRequest, role);
             return Ok(result);
         }
     }

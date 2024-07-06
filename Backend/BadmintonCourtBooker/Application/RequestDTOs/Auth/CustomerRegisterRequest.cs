@@ -1,4 +1,6 @@
-﻿namespace Application.RequestDTOs.Auth
+﻿using Domain.Enums;
+
+namespace Application.RequestDTOs.Auth
 {
     public class CustomerRegisterRequest
     {
@@ -13,6 +15,16 @@
     {
         public string Email { get; set; } = string.Empty;
         public string FirstName { get; set; } = string.Empty;
+        public string PhoneNumber { get; set; } = string.Empty;
+
+        public UserStatus Status { get; set; } = UserStatus.None;
+    }
+
+    public class CustomerUpdateRequest
+    {
+        public string Password { get; set; } = string.Empty;
+        public string FirstName { get; set; } = string.Empty;
+        public string LastName { get; set; } = string.Empty;
         public string PhoneNumber { get; set; } = string.Empty;
     }
 }
