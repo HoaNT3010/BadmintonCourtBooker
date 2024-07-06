@@ -131,5 +131,63 @@ namespace WebAPI.Controllers
         {
             return Ok(await courtService.AddCourtBookingMethods(id, request));
         }
+
+        /// <summary>
+        /// Activate a badminton court (Change status to Active), the court must satisfied conditions to be activated. Only court manager and system admin can use this feature. 
+        /// </summary>
+        /// <param name="id">Badminton court's ID.</param>
+        /// <returns>Message contains the result</returns>
+        /// <exception cref="Exception"></exception>
+        [HttpPatch]
+        [Route("{id:guid}/activate")]
+        [Produces("application/json")]
+        [Authorize(policy: AuthorizationOptionsSetup.CourtAdministrator)]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(MessageDetail))]
+        [ProducesResponseType((int)HttpStatusCode.BadRequest, Type = typeof(ErrorDetail))]
+        [ProducesResponseType((int)HttpStatusCode.Unauthorized, Type = typeof(ErrorDetail))]
+        [ProducesResponseType((int)HttpStatusCode.InternalServerError, Type = typeof(ErrorDetail))]
+        public async Task<ActionResult<MessageDetail>> ActivateBadmintonCourt([FromRoute] Guid id)
+        {
+            var result = await courtService.ActivateCourt(id);
+            if (!result)
+            {
+                throw new Exception("Failed to activate court. Please try again!");
+            }
+            return Ok(new MessageDetail()
+            {
+                StatusCode = 200,
+                Title = "Success",
+                Message = "Successfully activate court",
+            });
+        }
+
+        /// <summary>
+        /// Deactivate a badminton court (Change status to Inactive). Only court manager and system admin can use this feature. 
+        /// </summary>
+        /// <param name="id">Badminton court's ID.</param>
+        /// <returns>Message contains the result</returns>
+        /// <exception cref="Exception"></exception>
+        [HttpPatch]
+        [Route("{id:guid}/deactivate")]
+        [Produces("application/json")]
+        [Authorize(policy: AuthorizationOptionsSetup.CourtAdministrator)]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(MessageDetail))]
+        [ProducesResponseType((int)HttpStatusCode.BadRequest, Type = typeof(ErrorDetail))]
+        [ProducesResponseType((int)HttpStatusCode.Unauthorized, Type = typeof(ErrorDetail))]
+        [ProducesResponseType((int)HttpStatusCode.InternalServerError, Type = typeof(ErrorDetail))]
+        public async Task<ActionResult<MessageDetail>> DeactivateBadmintonCourt([FromRoute] Guid id)
+        {
+            var result = await courtService.DeactivateCourt(id);
+            if (!result)
+            {
+                throw new Exception("Failed to deactivate court. Please try again!");
+            }
+            return Ok(new MessageDetail()
+            {
+                StatusCode = 200,
+                Title = "Success",
+                Message = "Successfully deactivate court",
+            });
+        }
     }
 }

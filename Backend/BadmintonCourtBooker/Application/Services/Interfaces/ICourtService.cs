@@ -11,5 +11,7 @@ namespace Application.Services.Interfaces
         Task<CourtDetail?> AddCourtEmployees(Guid id, AddCourtEmployeeRequest request);
         Task<CourtDetail?> AddCourtPaymentMethods(Guid id, PaymentMethodCreateRequest request);
         Task<CourtDetail?> AddCourtBookingMethods(Guid id, BookingMethodCreateRequest request);
+        Task<bool> ActivateCourt(Guid id);
+        Task<bool> DeactivateCourt(Guid id);
     }
 }
