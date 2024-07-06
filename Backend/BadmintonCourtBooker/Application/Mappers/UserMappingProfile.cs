@@ -1,4 +1,5 @@
-﻿using Application.ResponseDTOs;
+﻿using Application.RequestDTOs.Auth;
+using Application.ResponseDTOs;
 using Application.Utilities;
 using AutoMapper;
 using Domain.Entities;
@@ -16,6 +17,7 @@ namespace Application.Mappers
             CreateMap<User, ListCustomerResponse>()
                 .ForMember(d => d.Id, s => s.MapFrom(s => s.Id))
                 .ForMember(d => d.Email, s => s.MapFrom(s => s.Email))
+                .ForMember(d => d.FirstName, s => s.MapFrom(s => s.FirstName))
                 .ForMember(d => d.PhoneNumber, s => s.MapFrom(s => s.PhoneNumber))
                 .ForMember(d => d.Status, s => s.MapFrom(s => s.Status))
                 .ForMember(d => d.CreatedDate, s => s.MapFrom(s => DateTimeHelper.FormatDateTime(s.CreatedDate)));
@@ -29,6 +31,11 @@ namespace Application.Mappers
                 .ForMember(d => d.Status, s => s.MapFrom(s => s.Status))
                 .ForMember(d => d.BookingTime, s => s.MapFrom(s => s.BookingTime))
                 .ForMember(d => d.CreatedDate, s => s.MapFrom(s => DateTimeHelper.FormatDateTime(s.CreatedDate)));
+            CreateMap<CustomerUpdateRequest, User>()
+                .ForMember(d => d.PasswordHash, s => s.MapFrom(s => s.Password))
+                .ForMember(d => d.FirstName, s => s.MapFrom(s => s.FirstName))
+                .ForMember(d => d.LastName, s => s.MapFrom(s => s.LastName))
+                .ForMember(d => d.PhoneNumber, s => s.MapFrom(s => s.PhoneNumber));
         }
     }
 }

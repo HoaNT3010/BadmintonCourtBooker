@@ -1,7 +1,9 @@
 ﻿using Domain.Entities;
+using Domain.Enums;
 using Infrastructure.Context;
 using Infrastructure.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using BC = BCrypt.Net.BCrypt;
 
 namespace Infrastructure.Repositories.ConcreteClasses
@@ -46,7 +48,7 @@ namespace Infrastructure.Repositories.ConcreteClasses
             return dbSet.AsQueryable();
         }
 
-        public IQueryable<User> SearchByNameByEmailByPhone(string name, string email, string phone)
+        public IQueryable<User> SearchByNameByEmailByPhoneByStatus(string name, string email, string phone, UserStatus status)
         {
             var query = dbSet.AsNoTracking().AsQueryable();
 
@@ -63,6 +65,10 @@ namespace Infrastructure.Repositories.ConcreteClasses
             if (!string.IsNullOrEmpty(name))
             {
                 query = query.Where(c => c.FirstName.Contains(name));
+            }
+            if (status != UserStatus.None)
+            {
+                query = query.Where(c => c.Status == status);
             }
 
             return query;
