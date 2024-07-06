@@ -1,5 +1,6 @@
 ﻿using Application.RequestDTOs.Court;
 using Application.ResponseDTOs.Court;
+using Infrastructure.Utilities.Paging;
 
 namespace Application.Services.Interfaces
 {
@@ -11,5 +12,8 @@ namespace Application.Services.Interfaces
         Task<CourtDetail?> AddCourtEmployees(Guid id, AddCourtEmployeeRequest request);
         Task<CourtDetail?> AddCourtPaymentMethods(Guid id, PaymentMethodCreateRequest request);
         Task<CourtDetail?> AddCourtBookingMethods(Guid id, BookingMethodCreateRequest request);
+        Task<bool> ActivateCourt(Guid id);
+        Task<bool> DeactivateCourt(Guid id);
+        Task<PagedList<CourtShortDetail>> SearchCourt(CourtSearchRequest searchRequest);
     }
 }

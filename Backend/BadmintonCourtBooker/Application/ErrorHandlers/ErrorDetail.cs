@@ -20,4 +20,6 @@ namespace Application.ErrorHandlers
             return JsonSerializer.Serialize(this, options);
         }
     }
+
+    public class MessageDetail : ErrorDetail { }
 }

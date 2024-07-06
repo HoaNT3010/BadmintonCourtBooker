@@ -3,6 +3,7 @@ using Application.ResponseDTOs.Court;
 using Application.Utilities;
 using AutoMapper;
 using Domain.Entities;
+using Infrastructure.Utilities.Paging;
 
 namespace Application.Mappers
 {
@@ -56,6 +57,14 @@ namespace Application.Mappers
                 .ForMember(d => d.SlotDuration, opt => opt.MapFrom(s => DateTimeHelper.FormatTime(s.SlotDuration)))
                 .ForMember(d => d.CourtStatus, opt => opt.MapFrom(s => s.CourtStatus.ToString()))
                 .ForMember(d => d.CreatedDate, opt => opt.MapFrom(s => DateTimeHelper.FormatDate(s.CreatedDate)));
+
+            CreateMap<Court, CourtShortDetail>()
+                .ForMember(d => d.Id, opt => opt.MapFrom(s => s.Id.ToString()))
+                .ForMember(d => d.CourtType, opt => opt.MapFrom(s => s.CourtType.ToString()))
+                .ForMember(d => d.SlotDuration, opt => opt.MapFrom(s => DateTimeHelper.FormatTime(s.SlotDuration)))
+                .ForMember(d => d.CourtStatus, opt => opt.MapFrom(s => s.CourtStatus.ToString()));
+
+            CreateMap<PagedList<Court>, PagedList<CourtShortDetail>>();
         }
     }
 }

@@ -2,6 +2,7 @@
 using Application.RequestDTOs.Court;
 using Application.ResponseDTOs.Court;
 using Application.Services.Interfaces;
+using Infrastructure.Utilities.Paging;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
@@ -130,6 +131,80 @@ namespace WebAPI.Controllers
         public async Task<ActionResult<CourtDetail>> AddCourtBookingMethods([FromRoute] Guid id, [FromBody] BookingMethodCreateRequest request)
         {
             return Ok(await courtService.AddCourtBookingMethods(id, request));
+        }
+
+        /// <summary>
+        /// Activate a badminton court (Change status to Active), the court must satisfied conditions to be activated. Only court manager and system admin can use this feature. 
+        /// </summary>
+        /// <param name="id">Badminton court's ID.</param>
+        /// <returns>Message contains the result</returns>
+        /// <exception cref="Exception"></exception>
+        [HttpPatch]
+        [Route("{id:guid}/activate")]
+        [Produces("application/json")]
+        [Authorize(policy: AuthorizationOptionsSetup.CourtAdministrator)]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(MessageDetail))]
+        [ProducesResponseType((int)HttpStatusCode.BadRequest, Type = typeof(ErrorDetail))]
+        [ProducesResponseType((int)HttpStatusCode.Unauthorized, Type = typeof(ErrorDetail))]
+        [ProducesResponseType((int)HttpStatusCode.InternalServerError, Type = typeof(ErrorDetail))]
+        public async Task<ActionResult<MessageDetail>> ActivateBadmintonCourt([FromRoute] Guid id)
+        {
+            var result = await courtService.ActivateCourt(id);
+            if (!result)
+            {
+                throw new Exception("Failed to activate court. Please try again!");
+            }
+            return Ok(new MessageDetail()
+            {
+                StatusCode = 200,
+                Title = "Success",
+                Message = "Successfully activate court",
+            });
+        }
+
+        /// <summary>
+        /// Deactivate a badminton court (Change status to Inactive). Only court manager and system admin can use this feature. 
+        /// </summary>
+        /// <param name="id">Badminton court's ID.</param>
+        /// <returns>Message contains the result</returns>
+        /// <exception cref="Exception"></exception>
+        [HttpPatch]
+        [Route("{id:guid}/deactivate")]
+        [Produces("application/json")]
+        [Authorize(policy: AuthorizationOptionsSetup.CourtAdministrator)]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(MessageDetail))]
+        [ProducesResponseType((int)HttpStatusCode.BadRequest, Type = typeof(ErrorDetail))]
+        [ProducesResponseType((int)HttpStatusCode.Unauthorized, Type = typeof(ErrorDetail))]
+        [ProducesResponseType((int)HttpStatusCode.InternalServerError, Type = typeof(ErrorDetail))]
+        public async Task<ActionResult<MessageDetail>> DeactivateBadmintonCourt([FromRoute] Guid id)
+        {
+            var result = await courtService.DeactivateCourt(id);
+            if (!result)
+            {
+                throw new Exception("Failed to deactivate court. Please try again!");
+            }
+            return Ok(new MessageDetail()
+            {
+                StatusCode = 200,
+                Title = "Success",
+                Message = "Successfully deactivate court",
+            });
+        }
+
+        /// <summary>
+        /// Search courts with various filters, paging option and sorting order.
+        /// </summary>
+        /// <param name="searchRequest">Search request contains filters, sorting order and paging option.</param>
+        /// <returns>Paged list of badminton courts.</returns>
+        [HttpGet]
+        [Route("search")]
+        [Produces("application/json")]
+        [AllowAnonymous]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(PagedList<CourtShortDetail>))]
+        public async Task<ActionResult<PagedList<CourtShortDetail>>> SearchCourts([FromQuery] CourtSearchRequest searchRequest)
+        {
+            var result = await courtService.SearchCourt(searchRequest);
+            return Ok(result);
         }
     }
 }

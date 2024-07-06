@@ -7,7 +7,9 @@ using AutoMapper;
 using Domain.Entities;
 using Domain.Enums;
 using Infrastructure.Data.UnitOfWork;
+using Infrastructure.Utilities.Paging;
 using Microsoft.EntityFrameworkCore;
+using System.Linq.Expressions;
 
 namespace Application.Services.ConcreteClasses
 {
@@ -92,6 +94,99 @@ namespace Application.Services.ConcreteClasses
                 throw new NotFoundException($"Cannot find badminton court with ID: {id.ToString()}");
             }
             return mapper.Map<CourtDetail>(court);
+        }
+
+        public async Task<bool> ActivateCourt(Guid id)
+        {
+            await CheckUserCourtEditingPermission(id);
+
+            var court = await unitOfWork.CourtRepository.GetCourtFullDetail(id);
+
+            if (court!.CourtStatus == CourtStatus.Active)
+            {
+                throw new BadRequestException($"Court with Id {id} is already activated!");
+            }
+
+            // Check conditions for court to be activated
+            CheckCourtActivationConditions(court);
+
+            court.CourtStatus = CourtStatus.Active;
+
+            try
+            {
+                unitOfWork.CourtRepository.Update(court);
+                var result = await unitOfWork.SaveChangeAsync();
+                return result > 0 ? true : false;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"An unexpected error occurred when trying to activate court: {ex.Message}");
+            }
+        }
+
+        private void CheckCourtActivationConditions(Court court)
+        {
+            // Must have at least 1 payment method
+            if (court.PaymentMethods == null || court.PaymentMethods.Count <= 0)
+            {
+                throw new BadRequestException("Failed to activate court. The court must have at least 1 payment method!");
+            }
+
+            // Must have at least 1 booking method
+            if (court.BookingMethods == null || court.BookingMethods.Count <= 0)
+            {
+                throw new BadRequestException("Failed to activate court. The court must have at least 1 booking method!");
+            }
+
+            // Must have court schedules
+            if (court.Schedules == null || court.Schedules.Count <= 0)
+            {
+                throw new BadRequestException("Failed to activate court. The court does not have any schedule set up!");
+            }
+
+            // Each court schedule must have at least 1 slot set up
+            foreach (var schedule in court.Schedules)
+            {
+                if (schedule.Slots == null || schedule.Slots.Count <= 0)
+                {
+                    throw new BadRequestException($"Failed to activate court. Court's schedule for {schedule.DayOfWeek} does not have any slot set up!");
+                }
+            }
+
+            // Must have at least 1 employee with role manager
+            if (court.Employees == null || court.Employees.Count <= 0)
+            {
+                throw new BadRequestException("Failed to activate court. The court does not have any employee!");
+            }
+            else if (!court.Employees.Any(e => e.Role == EmployeeRole.Manager))
+            {
+                throw new BadRequestException("Failed to activate court. The court does not have any employee with role of Manager!");
+            }
+        }
+
+        public async Task<bool> DeactivateCourt(Guid id)
+        {
+            await CheckUserCourtEditingPermission(id);
+
+            var court = await unitOfWork.CourtRepository.GetByIdAsync(id);
+
+            if (court!.CourtStatus == CourtStatus.Inactive)
+            {
+                throw new BadRequestException($"Court with Id {id} is already deactivated!");
+            }
+
+            court.CourtStatus = CourtStatus.Inactive;
+
+            try
+            {
+                unitOfWork.CourtRepository.Update(court);
+                var result = await unitOfWork.SaveChangeAsync();
+                return result > 0 ? true : false;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"An unexpected error occurred when trying to deactivate court: {ex.Message}");
+            }
         }
 
         #endregion
@@ -520,6 +615,72 @@ namespace Application.Services.ConcreteClasses
             {
                 throw new UnauthorizedException("Cannot edit court information. User is not court creator or manager!");
             }
+        }
+
+        #endregion
+
+        #region QueryCourt
+
+        public async Task<PagedList<CourtShortDetail>> SearchCourt(CourtSearchRequest searchRequest)
+        {
+            Expression<Func<Court, bool>> filterExpression = GetSearchFilterExpression(searchRequest);
+
+            Func<IQueryable<Court>, IOrderedQueryable<Court>> orderByExpression = GetSearchOrderByExpression(searchRequest.OrderBy, searchRequest.SortingOrder);
+
+            var searchResult = await unitOfWork.CourtRepository.GetPaginatedAsync(searchRequest.PageNumber,
+                searchRequest.PageSize,
+                filterExpression,
+                orderByExpression);
+
+            return mapper.Map<PagedList<CourtShortDetail>>(searchResult);
+        }
+
+        private Func<IQueryable<Court>, IOrderedQueryable<Court>> GetSearchOrderByExpression(CourtOrderBy orderBy, SortingOrder sortingOrder)
+        {
+            switch (sortingOrder)
+            {
+                case SortingOrder.Ascending:
+                    switch (orderBy)
+                    {
+                        case CourtOrderBy.CourtName:
+                            return (q => q.OrderBy(c => c.Name));
+                        case CourtOrderBy.SlotDuration:
+                            return (q => q.OrderBy(c => c.SlotDuration));
+                    }
+                    break;
+                case SortingOrder.Descending:
+                    switch (orderBy)
+                    {
+                        case CourtOrderBy.CourtName:
+                            return (q => q.OrderByDescending(c => c.Name));
+                        case CourtOrderBy.SlotDuration:
+                            return (q => q.OrderByDescending(c => c.SlotDuration));
+                    }
+                    break;
+            }
+            return (q => q.OrderBy(c => c.Name));
+        }
+
+        private Expression<Func<Court, bool>> GetSearchFilterExpression(CourtSearchRequest searchRequest)
+        {
+            Expression<Func<Court, bool>> baseExp = (c => (c.Name.Contains(searchRequest.CourtName) || c.Address.Contains(searchRequest.CourtLocation)));
+            Expression<Func<Court, bool>>? courtTypeExp = searchRequest.CourtType == CourtType.None ? null : (c => c.CourtType == searchRequest.CourtType);
+            Expression<Func<Court, bool>>? courtStatusExp = searchRequest.CourtStatus == CourtStatus.None ? null : (c => c.CourtStatus == searchRequest.CourtStatus);
+
+            ParameterExpression parameter = Expression.Parameter(typeof(Court));
+            Expression combinedBody = Expression.Invoke(baseExp, parameter);
+
+            if (courtTypeExp != null)
+            {
+                combinedBody = Expression.AndAlso(combinedBody, Expression.Invoke(courtTypeExp, parameter));
+            }
+
+            if (courtStatusExp != null)
+            {
+                combinedBody = Expression.AndAlso(combinedBody, Expression.Invoke(courtStatusExp, parameter));
+            }
+
+            return Expression.Lambda<Func<Court, bool>>(combinedBody, parameter);
         }
 
         #endregion
