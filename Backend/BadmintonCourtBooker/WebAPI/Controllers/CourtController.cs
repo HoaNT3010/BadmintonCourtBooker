@@ -2,6 +2,7 @@
 using Application.RequestDTOs.Court;
 using Application.ResponseDTOs.Court;
 using Application.Services.Interfaces;
+using Infrastructure.Utilities.Paging;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
@@ -188,6 +189,22 @@ namespace WebAPI.Controllers
                 Title = "Success",
                 Message = "Successfully deactivate court",
             });
+        }
+
+        /// <summary>
+        /// Search courts with various filters, paging option and sorting order.
+        /// </summary>
+        /// <param name="searchRequest">Search request contains filters, sorting order and paging option.</param>
+        /// <returns>Paged list of badminton courts.</returns>
+        [HttpGet]
+        [Route("search")]
+        [Produces("application/json")]
+        [AllowAnonymous]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(PagedList<CourtShortDetail>))]
+        public async Task<ActionResult<PagedList<CourtShortDetail>>> SearchCourts([FromQuery] CourtSearchRequest searchRequest)
+        {
+            var result = await courtService.SearchCourt(searchRequest);
+            return Ok(result);
         }
     }
 }

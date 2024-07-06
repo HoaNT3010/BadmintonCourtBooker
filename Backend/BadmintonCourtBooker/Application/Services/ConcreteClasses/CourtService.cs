@@ -7,7 +7,9 @@ using AutoMapper;
 using Domain.Entities;
 using Domain.Enums;
 using Infrastructure.Data.UnitOfWork;
+using Infrastructure.Utilities.Paging;
 using Microsoft.EntityFrameworkCore;
+using System.Linq.Expressions;
 
 namespace Application.Services.ConcreteClasses
 {
@@ -613,6 +615,72 @@ namespace Application.Services.ConcreteClasses
             {
                 throw new UnauthorizedException("Cannot edit court information. User is not court creator or manager!");
             }
+        }
+
+        #endregion
+
+        #region QueryCourt
+
+        public async Task<PagedList<CourtShortDetail>> SearchCourt(CourtSearchRequest searchRequest)
+        {
+            Expression<Func<Court, bool>> filterExpression = GetSearchFilterExpression(searchRequest);
+
+            Func<IQueryable<Court>, IOrderedQueryable<Court>> orderByExpression = GetSearchOrderByExpression(searchRequest.OrderBy, searchRequest.SortingOrder);
+
+            var searchResult = await unitOfWork.CourtRepository.GetPaginatedAsync(searchRequest.PageNumber,
+                searchRequest.PageSize,
+                filterExpression,
+                orderByExpression);
+
+            return mapper.Map<PagedList<CourtShortDetail>>(searchResult);
+        }
+
+        private Func<IQueryable<Court>, IOrderedQueryable<Court>> GetSearchOrderByExpression(CourtOrderBy orderBy, SortingOrder sortingOrder)
+        {
+            switch (sortingOrder)
+            {
+                case SortingOrder.Ascending:
+                    switch (orderBy)
+                    {
+                        case CourtOrderBy.CourtName:
+                            return (q => q.OrderBy(c => c.Name));
+                        case CourtOrderBy.SlotDuration:
+                            return (q => q.OrderBy(c => c.SlotDuration));
+                    }
+                    break;
+                case SortingOrder.Descending:
+                    switch (orderBy)
+                    {
+                        case CourtOrderBy.CourtName:
+                            return (q => q.OrderByDescending(c => c.Name));
+                        case CourtOrderBy.SlotDuration:
+                            return (q => q.OrderByDescending(c => c.SlotDuration));
+                    }
+                    break;
+            }
+            return (q => q.OrderBy(c => c.Name));
+        }
+
+        private Expression<Func<Court, bool>> GetSearchFilterExpression(CourtSearchRequest searchRequest)
+        {
+            Expression<Func<Court, bool>> baseExp = (c => (c.Name.Contains(searchRequest.CourtName) || c.Address.Contains(searchRequest.CourtLocation)));
+            Expression<Func<Court, bool>>? courtTypeExp = searchRequest.CourtType == CourtType.None ? null : (c => c.CourtType == searchRequest.CourtType);
+            Expression<Func<Court, bool>>? courtStatusExp = searchRequest.CourtStatus == CourtStatus.None ? null : (c => c.CourtStatus == searchRequest.CourtStatus);
+
+            ParameterExpression parameter = Expression.Parameter(typeof(Court));
+            Expression combinedBody = Expression.Invoke(baseExp, parameter);
+
+            if (courtTypeExp != null)
+            {
+                combinedBody = Expression.AndAlso(combinedBody, Expression.Invoke(courtTypeExp, parameter));
+            }
+
+            if (courtStatusExp != null)
+            {
+                combinedBody = Expression.AndAlso(combinedBody, Expression.Invoke(courtStatusExp, parameter));
+            }
+
+            return Expression.Lambda<Func<Court, bool>>(combinedBody, parameter);
         }
 
         #endregion
