@@ -94,6 +94,99 @@ namespace Application.Services.ConcreteClasses
             return mapper.Map<CourtDetail>(court);
         }
 
+        public async Task<bool> ActivateCourt(Guid id)
+        {
+            await CheckUserCourtEditingPermission(id);
+
+            var court = await unitOfWork.CourtRepository.GetCourtFullDetail(id);
+
+            if (court!.CourtStatus == CourtStatus.Active)
+            {
+                throw new BadRequestException($"Court with Id {id} is already activated!");
+            }
+
+            // Check conditions for court to be activated
+            CheckCourtActivationConditions(court);
+
+            court.CourtStatus = CourtStatus.Active;
+
+            try
+            {
+                unitOfWork.CourtRepository.Update(court);
+                var result = await unitOfWork.SaveChangeAsync();
+                return result > 0 ? true : false;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"An unexpected error occurred when trying to activate court: {ex.Message}");
+            }
+        }
+
+        private void CheckCourtActivationConditions(Court court)
+        {
+            // Must have at least 1 payment method
+            if (court.PaymentMethods == null || court.PaymentMethods.Count <= 0)
+            {
+                throw new BadRequestException("Failed to activate court. The court must have at least 1 payment method!");
+            }
+
+            // Must have at least 1 booking method
+            if (court.BookingMethods == null || court.BookingMethods.Count <= 0)
+            {
+                throw new BadRequestException("Failed to activate court. The court must have at least 1 booking method!");
+            }
+
+            // Must have court schedules
+            if (court.Schedules == null || court.Schedules.Count <= 0)
+            {
+                throw new BadRequestException("Failed to activate court. The court does not have any schedule set up!");
+            }
+
+            // Each court schedule must have at least 1 slot set up
+            foreach (var schedule in court.Schedules)
+            {
+                if (schedule.Slots == null || schedule.Slots.Count <= 0)
+                {
+                    throw new BadRequestException($"Failed to activate court. Court's schedule for {schedule.DayOfWeek} does not have any slot set up!");
+                }
+            }
+
+            // Must have at least 1 employee with role manager
+            if (court.Employees == null || court.Employees.Count <= 0)
+            {
+                throw new BadRequestException("Failed to activate court. The court does not have any employee!");
+            }
+            else if (!court.Employees.Any(e => e.Role == EmployeeRole.Manager))
+            {
+                throw new BadRequestException("Failed to activate court. The court does not have any employee with role of Manager!");
+            }
+        }
+
+        public async Task<bool> DeactivateCourt(Guid id)
+        {
+            await CheckUserCourtEditingPermission(id);
+
+            var court = await unitOfWork.CourtRepository.GetByIdAsync(id);
+
+            if (court!.CourtStatus == CourtStatus.Inactive)
+            {
+                throw new BadRequestException($"Court with Id {id} is already deactivated!");
+            }
+
+            court.CourtStatus = CourtStatus.Inactive;
+
+            try
+            {
+                unitOfWork.CourtRepository.Update(court);
+                var result = await unitOfWork.SaveChangeAsync();
+                return result > 0 ? true : false;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"An unexpected error occurred when trying to deactivate court: {ex.Message}");
+            }
+        }
+
         #endregion
 
         #region CourtSchedules
