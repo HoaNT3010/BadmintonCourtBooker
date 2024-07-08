@@ -206,5 +206,34 @@ namespace WebAPI.Controllers
             var result = await courtService.SearchCourt(searchRequest);
             return Ok(result);
         }
+
+        /// <summary>
+        /// Delete a badminton court by ID. The deleted court will have status changed to Removed and no longer be interacted with. Only court manager and system admin can use this feature.
+        /// </summary>
+        /// <param name="id">ID of badminton court.</param>
+        /// <returns>Message contains the result</returns>
+        /// <exception cref="Exception"></exception>
+        [HttpDelete]
+        [Route("{id:guid}")]
+        [Produces("application/json")]
+        [Authorize(policy: AuthorizationOptionsSetup.CourtAdministrator)]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(MessageDetail))]
+        [ProducesResponseType((int)HttpStatusCode.BadRequest, Type = typeof(ErrorDetail))]
+        [ProducesResponseType((int)HttpStatusCode.Unauthorized, Type = typeof(ErrorDetail))]
+        [ProducesResponseType((int)HttpStatusCode.InternalServerError, Type = typeof(ErrorDetail))]
+        public async Task<ActionResult<MessageDetail>> SoftDeleteCourt([FromRoute] Guid id)
+        {
+            var result = await courtService.SoftDeleteCourt(id);
+            if (!result)
+            {
+                throw new Exception("Failed to delete court. Please try again!");
+            }
+            return Ok(new MessageDetail()
+            {
+                StatusCode = 200,
+                Title = "Success",
+                Message = "Successfully delete court",
+            });
+        }
     }
 }
