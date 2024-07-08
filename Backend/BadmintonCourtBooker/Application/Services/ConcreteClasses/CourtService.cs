@@ -64,6 +64,7 @@ namespace Application.Services.ConcreteClasses
                     MethodType = PaymentMethodType.OnCourt,
                     CourtId = newCourt.Id,
                     Account = "On-court Payment",
+                    Status = PaymentMethodStatus.Active,
                 }
             };
 
