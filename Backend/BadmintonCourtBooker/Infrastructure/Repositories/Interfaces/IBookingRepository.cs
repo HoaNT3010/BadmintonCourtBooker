@@ -4,5 +4,6 @@ namespace Infrastructure.Repositories.Interfaces
 {
     public interface IBookingRepository : IBaseRepository<Booking>
     {
+        Task<Booking> GetBookingByCustomerIdAsync(Guid id);
     }
 }
