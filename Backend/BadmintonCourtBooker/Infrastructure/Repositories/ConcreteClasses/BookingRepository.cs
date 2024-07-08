@@ -17,5 +17,11 @@ namespace Infrastructure.Repositories.ConcreteClasses
                 .Where(b => b.RentDate == rentDate && b.SlotId == slotId)
                 .ToListAsync();
         }
+
+        public async Task<Booking?> GetBookingByCustomerIdAsync(Guid id)
+        {
+            return await context.Bookings
+                .FirstOrDefaultAsync(x => x.CustomerId.Equals(id));
+        }
     }
 }
