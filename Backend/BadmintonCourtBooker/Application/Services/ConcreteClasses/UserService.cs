@@ -163,7 +163,7 @@ namespace Application.Services.ConcreteClasses
         public async Task<PagedResult<ListCustomerResponse>> SearchByNameByEmailByPhone(SearchCustomerRequest searchCustomerRequest, int pageNumber, int pageSize)
         {
            
-                var customers =  unitOfWork.UserRepository.SearchByNameByEmailByPhone(searchCustomerRequest.FirstName, searchCustomerRequest.Email, searchCustomerRequest.PhoneNumber);
+                var customers =  unitOfWork.UserRepository.SearchByNameByEmailByPhoneByStatus(searchCustomerRequest.FirstName, searchCustomerRequest.Email, searchCustomerRequest.PhoneNumber, searchCustomerRequest.Status);
                 if (customers == null || !customers.Any())
                 {
                     throw new NotFoundException("List is empty");
@@ -183,20 +183,18 @@ namespace Application.Services.ConcreteClasses
             }
 
 
-        public async Task<bool> UpdateUserById(Guid userId, CustomerRegisterRequest updatedUser)
+        public async Task<bool> UpdateUserById(Guid userId, CustomerUpdateRequest updatedUser)
         {
             var existingUser = await unitOfWork.UserRepository.GetByIdAsync(userId);
             if (existingUser == null)
             {
                 throw new NotFoundException("User not found");
             }
-
-            // update by using data from updatedUser
-            existingUser.Email = updatedUser.Email;
-            existingUser.PasswordHash = BC.EnhancedHashPassword(updatedUser.Password);
-            existingUser.FirstName = updatedUser.FirstName;
-            existingUser.LastName = updatedUser.LastName;
-            existingUser.PhoneNumber = updatedUser.PhoneNumber;
+            if (!string.IsNullOrEmpty(updatedUser.Password))
+            {
+                updatedUser.Password = BC.EnhancedHashPassword(updatedUser.Password);
+            }
+            mapper.Map(updatedUser,existingUser);
             try
             {
                 unitOfWork.UserRepository.Update(existingUser);
@@ -211,7 +209,7 @@ namespace Application.Services.ConcreteClasses
             return true;
         }
 
-        public async Task<bool> UpdateCurrentUserById(CustomerRegisterRequest updatedUser)
+        public async Task<bool> UpdateCurrentUserById(CustomerUpdateRequest updatedUser)
         {
             // Verify request sender account status
             jwtService.CheckActiveAccountStatus();
@@ -222,13 +220,11 @@ namespace Application.Services.ConcreteClasses
             {
                 throw new NotFoundException("User not found");
             }
-
-            // update by using data from updatedUser
-            existingUser.Email = updatedUser.Email;
-            existingUser.PasswordHash = BC.EnhancedHashPassword(updatedUser.Password);
-            existingUser.FirstName = updatedUser.FirstName;
-            existingUser.LastName = updatedUser.LastName;
-            existingUser.PhoneNumber = updatedUser.PhoneNumber;
+            if (!string.IsNullOrEmpty(updatedUser.Password))
+            {
+                updatedUser.Password = BC.EnhancedHashPassword(updatedUser.Password);
+            }
+            mapper.Map(updatedUser, existingUser);
             try
             {
                 unitOfWork.UserRepository.Update(existingUser);
@@ -239,6 +235,29 @@ namespace Application.Services.ConcreteClasses
                 throw new Exception(ex.InnerException.Message);
             }
            
+
+            return true;
+        }
+
+        public async Task<bool> UpdateRoleUserById(Guid requestId, UserRole Role)
+        {
+            var existProfile = await unitOfWork.UserRepository.GetByIdAsync(requestId);
+            if (existProfile == null)
+            {
+                throw new NotFoundException("User Not Exist");
+            }
+            
+            existProfile.Role = Role;
+            
+            try
+            {
+                unitOfWork.UserRepository.Update(existProfile);
+                await unitOfWork.SaveChangeAsync();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.InnerException.Message);
+            }
 
             return true;
         }

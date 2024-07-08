@@ -2,6 +2,7 @@
 using Application.ResponseDTOs.Auth;
 using Application.ResponseDTOs;
 using Domain.Entities;
+using Domain.Enums;
 
 namespace Application.Services.Interfaces
 {
@@ -14,7 +15,8 @@ namespace Application.Services.Interfaces
         Task<PagedResult<ListCustomerResponse>> GetListUser(int pageNumber, int pageSize);
         Task<bool> BanUserById(Guid requestId);
         Task<PagedResult<ListCustomerResponse>> SearchByNameByEmailByPhone(SearchCustomerRequest searchCustomerRequest, int pageNumber, int pageSize);
-        Task<bool> UpdateUserById(Guid userId, CustomerRegisterRequest updatedUser);
-        Task<bool> UpdateCurrentUserById(CustomerRegisterRequest updatedUser);
+        Task<bool> UpdateUserById(Guid userId, CustomerUpdateRequest updatedUser);
+        Task<bool> UpdateCurrentUserById(CustomerUpdateRequest updatedUser);
+        Task<bool> UpdateRoleUserById(Guid requestId, UserRole Role);
     }
 }
