@@ -11,10 +11,12 @@ namespace Infrastructure.Repositories.ConcreteClasses
         {
         }
 
-        public async Task<List<Booking>?> GetBookings(DateTime rentDate, int slotId)
+        public async Task<List<Booking>?> GetPendingAndSuccessBookings(DateTime rentDate, int slotId)
         {
             return await dbSet.Include(b => b.Slot)
-                .Where(b => b.RentDate == rentDate && b.SlotId == slotId)
+                .Where(b => b.RentDate == rentDate &&
+                b.SlotId == slotId &&
+                (b.Status == Domain.Enums.BookingStatus.Pending || b.Status == Domain.Enums.BookingStatus.Success))
                 .ToListAsync();
         }
 
