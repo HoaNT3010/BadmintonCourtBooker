@@ -141,8 +141,13 @@ namespace WebAPI.Controllers
         [Authorize(policy: AuthorizationOptionsSetup.CourtAdministrator)]
         public async Task<ActionResult<User>> UpdateRoleUserById([FromRoute] Guid idRequest, UserRole role)
         {
-            var result = await userService.UpdateRoleUserById(idRequest, role);
-            return Ok(result);
+            var(isSuccess, message) = await userService.UpdateRoleUserById(idRequest, role);
+            if (!isSuccess)
+            {
+                return BadRequest(new { success = isSuccess, message });
+            }
+
+            return Ok(new { success = isSuccess, message });
         }
     }
 }
