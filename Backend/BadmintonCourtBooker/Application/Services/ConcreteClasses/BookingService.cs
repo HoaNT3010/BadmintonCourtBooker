@@ -8,7 +8,9 @@ using Domain.Enums;
 using Application.Utilities;
 using Domain.Entities;
 using Application.ResponseDTOs.Transaction;
-using System.Security.Cryptography.Xml;
+using Infrastructure.Utilities.Paging;
+using System.Linq.Expressions;
+using Application.ResponseDTOs.Court;
 
 namespace Application.Services.ConcreteClasses
 {
@@ -478,6 +480,83 @@ namespace Application.Services.ConcreteClasses
                 transaction.TotalAmount += newTransactionDetail.Amount;
                 transaction.TransactionDetails.Add(newTransactionDetail);
             }
+        }
+
+        #endregion
+
+        #region Query
+
+        public async Task<PagedList<BookingShortDetail>?> GetCurrentCustomerBookings(BookingQueryRequest queryRequest)
+        {
+            var customerId = jwtService.GetCurrentUserId();
+
+            Expression<Func<Booking, bool>> filterExpression = GetBookingFilterExpression(customerId, queryRequest);
+            Func<IQueryable<Booking>, IOrderedQueryable<Booking>> orderByExpression = GetOrderByExpression(queryRequest.OrderBy, queryRequest.SortingOrder);
+
+            var queryResult = await unitOfWork.BookingRepository.GetPaginatedAsync(queryRequest.PageNumber,
+                queryRequest.PageSize,
+                filterExpression,
+                orderByExpression,
+                "Court,Slot");
+
+            return mapper.Map<PagedList<BookingShortDetail>>(queryResult);
+        }
+
+        private Expression<Func<Booking, bool>> GetBookingFilterExpression(Guid customerId, BookingQueryRequest queryRequest)
+        {
+            Expression<Func<Booking, bool>> baseExp = (b => b.CustomerId == customerId);
+            Expression<Func<Booking, bool>>? checkInExp = queryRequest.CheckIn == BookingCheckIn.None ? null : GetCheckInExpression(queryRequest.CheckIn);
+            Expression<Func<Booking, bool>>? bookingStatusExp = queryRequest.Status == BookingStatus.None ? null : (b => b.Status == queryRequest.Status);
+
+            ParameterExpression parameter = Expression.Parameter(typeof(Booking));
+            Expression combinedBody = Expression.Invoke(baseExp, parameter);
+
+            if (checkInExp != null)
+            {
+                combinedBody = Expression.AndAlso(combinedBody, Expression.Invoke(checkInExp, parameter));
+            }
+
+            if (bookingStatusExp != null)
+            {
+                combinedBody = Expression.AndAlso(combinedBody, Expression.Invoke(bookingStatusExp, parameter));
+            }
+
+            return Expression.Lambda<Func<Booking, bool>>(combinedBody, parameter);
+        }
+
+        private Expression<Func<Booking, bool>> GetCheckInExpression(BookingCheckIn bookingCheckIn)
+        {
+            if (bookingCheckIn == BookingCheckIn.True)
+            {
+                return (b => b.CheckIn == true);
+            }
+            return (b => b.CheckIn == false);
+        }
+
+        private Func<IQueryable<Booking>, IOrderedQueryable<Booking>> GetOrderByExpression(BookingOrderBy orderBy, SortingOrder sortingOrder)
+        {
+            switch (sortingOrder)
+            {
+                case SortingOrder.Ascending:
+                    switch (orderBy)
+                    {
+                        case BookingOrderBy.RentDate:
+                            return (q => q.OrderBy(b => b.RentDate).ThenBy(b => b.Slot.Id));
+                        case BookingOrderBy.CreatedDate:
+                            return (q => q.OrderBy(b => b.CreatedDate));
+                    }
+                    break;
+                case SortingOrder.Descending:
+                    switch (orderBy)
+                    {
+                        case BookingOrderBy.RentDate:
+                            return (q => q.OrderByDescending(b => b.RentDate).ThenBy(b => b.Slot.Id));
+                        case BookingOrderBy.CreatedDate:
+                            return (q => q.OrderByDescending(b => b.CreatedDate));
+                    }
+                    break;
+            }
+            return (q => q.OrderByDescending(b => b.RentDate).ThenBy(b => b.Slot.Id));
         }
 
         #endregion
