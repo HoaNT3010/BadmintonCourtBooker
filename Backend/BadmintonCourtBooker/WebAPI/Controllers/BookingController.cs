@@ -41,5 +41,27 @@ namespace WebAPI.Controllers
             var result = await bookingService.CreateSingularBooking(courtId, bookingRequest);
             return Ok(result);
         }
+
+        /// <summary>
+        /// Create multiple bookings for a same badminton court's slot but repeated for many weeks within a same day. Use for booking methods Fixed (Lịch cố định - thanh toán bằng tiền).
+        /// Only verified customer can use this.
+        /// </summary>
+        /// <param name="courtId">Booking court's ID.</param>
+        /// <param name="bookingRequest">New booking's information contains multiple rent dates.</param>
+        /// <returns>Result contains bookings information, booking court and booking transaction.</returns>
+        [HttpPost]
+        [Route("create/multiple/{courtId:guid}")]
+        [Produces("application/json")]
+        [Authorize(policy: AuthorizationOptionsSetup.VerifiedCustomer)]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(CreateMultipleBookingResponse))]
+        [ProducesResponseType((int)HttpStatusCode.BadRequest, Type = typeof(ErrorDetail))]
+        [ProducesResponseType((int)HttpStatusCode.Unauthorized, Type = typeof(ErrorDetail))]
+        [ProducesResponseType((int)HttpStatusCode.NotFound, Type = typeof(ErrorDetail))]
+        [ProducesResponseType((int)HttpStatusCode.InternalServerError, Type = typeof(ErrorDetail))]
+        public async Task<ActionResult<CreateMultipleBookingResponse>> CreateNewMultipleBooking([FromRoute] Guid courtId, [FromBody] CreateMultipleBookingRequest bookingRequest)
+        {
+            var result = await bookingService.CreateMultipleBooking(courtId, bookingRequest);
+            return Ok(result);
+        }
     }
 }
