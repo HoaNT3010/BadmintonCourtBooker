@@ -24,7 +24,7 @@ namespace Application.Services.ConcreteClasses
             this.mapper = mapper;
             this.jwtService = jwtService;
         }
-        public async Task<bool> CourtCheckin(Guid id,string phone)
+        public async Task<bool> CourtCheckin(Guid id, string phone)
         {
             await CheckUserIsEmpoloyee(id);
 
@@ -42,11 +42,22 @@ namespace Application.Services.ConcreteClasses
         public async Task<StatsCourtResponse> ViewStatsOfCourt(Guid id)
         {
             await CheckUserIsEmpoloyee(id);
-
+            //Get staff infor to check id;
             var staff = await unitOfWork.EmployeeRepository.GetEmployeeByUserID(id);
-
+            //Get court in courtid of a staff
             var court = await unitOfWork.CourtRepository.GetByIdAsync(staff.CourtId);
-
+            //Get schdule of this court
+            var schedule = await unitOfWork.ScheduleRepository.GetCourtSchedules(court.Id);
+            //Get slot of Court
+            List<Slot> slot = new List<Slot>();
+            foreach (var item in schedule)
+            {
+                var slots = await unitOfWork.SlotRepository.GetSlotByScheduleId(item.Id);
+                foreach (var slotitem in slots)
+                {
+                    slot.Add(slotitem);
+                }
+            }
             return mapper.Map<StatsCourtResponse>(court);
         }
         #region UserPermission
@@ -75,7 +86,11 @@ namespace Application.Services.ConcreteClasses
             var roleUser = getUser.Role.ToString();
 
             bool isEmp = roleUser.Equals("Staff") ? true : false;
-
+            //if manager
+            if (!isEmp)
+            {
+                isEmp = roleUser.Equals("Manager") ? true : false;
+            }
             if (!isEmp)
             {
                 throw new UnauthorizedException("Cannot do this action. Only Employees!");
