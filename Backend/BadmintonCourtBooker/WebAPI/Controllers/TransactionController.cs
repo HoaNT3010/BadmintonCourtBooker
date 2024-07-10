@@ -1,7 +1,9 @@
 ﻿using Application.ErrorHandlers;
+using Application.RequestDTOs.Transaction;
 using Application.ResponseDTOs.Booking;
 using Application.ResponseDTOs.Transaction;
 using Application.Services.Interfaces;
+using Infrastructure.Utilities.Paging;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
@@ -55,6 +57,24 @@ namespace WebAPI.Controllers
         public async Task<ActionResult<TransactionSummary>> GetPersonalFullTransactionByDetailId([FromRoute] int id)
         {
             var result = await transactionService.GetPersonalFullTransactionByDetail(id);
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Get paginated list of created transactions of current customer. Only Verified Customer can use this feature.
+        /// </summary>
+        /// <param name="queryRequest">Contains query and sorting options.</param>
+        /// <returns>List of customer's transactions.</returns>
+        [HttpGet]
+        [Route("personal")]
+        [Produces("application/json")]
+        [Authorize(policy: AuthorizationOptionsSetup.VerifiedCustomer)]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(PagedList<TransactionShortSummary>))]
+        [ProducesResponseType((int)HttpStatusCode.Unauthorized, Type = typeof(ErrorDetail))]
+        [ProducesResponseType((int)HttpStatusCode.Forbidden, Type = typeof(ErrorDetail))]
+        public async Task<ActionResult<PagedList<TransactionShortSummary>>> GetPersonalTransactions([FromQuery] TransactionQueryRequest queryRequest)
+        {
+            var result = await transactionService.GetPersonalTransactions(queryRequest);
             return Ok(result);
         }
     }
