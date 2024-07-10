@@ -564,7 +564,7 @@ namespace Application.Services.ConcreteClasses
             var result = await unitOfWork.BookingRepository.GetFullCustomerBooking(customerId, bookingId);
             if (result == null)
             {
-                throw new NotFoundException($"Cannot found information of booking with ID '{bookingId}'");
+                throw new NotFoundException($"Cannot found information of booking with ID '{bookingId.ToString()}'");
             }
             return mapper.Map<BookingDetail>(result);
         }
