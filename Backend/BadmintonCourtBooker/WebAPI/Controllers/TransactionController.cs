@@ -38,5 +38,24 @@ namespace WebAPI.Controllers
             var result = await transactionService.GetPersonalFullTransaction(id);
             return Ok(result);
         }
+
+        /// <summary>
+        /// Retrieve a transaction with full information of current customer using the transaction's transaction detail ID. Only Verified Customer can use this feature.
+        /// </summary>
+        /// <param name="id">ID of customer's transaction.</param>
+        /// <returns>Gull information of the transaction.</returns>
+        [HttpGet]
+        [Route("personal/by-detail/{id:int}")]
+        [Produces("application/json")]
+        [Authorize(policy: AuthorizationOptionsSetup.VerifiedCustomer)]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(TransactionSummary))]
+        [ProducesResponseType((int)HttpStatusCode.Unauthorized, Type = typeof(ErrorDetail))]
+        [ProducesResponseType((int)HttpStatusCode.NotFound, Type = typeof(ErrorDetail))]
+        [ProducesResponseType((int)HttpStatusCode.Forbidden, Type = typeof(ErrorDetail))]
+        public async Task<ActionResult<TransactionSummary>> GetPersonalFullTransactionByDetailId([FromRoute] int id)
+        {
+            var result = await transactionService.GetPersonalFullTransactionByDetail(id);
+            return Ok(result);
+        }
     }
 }

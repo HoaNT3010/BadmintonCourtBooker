@@ -17,5 +17,12 @@ namespace Infrastructure.Repositories.ConcreteClasses
                 .Include(t => t.TransactionDetails)
                 .FirstOrDefaultAsync(t => t.CreatorId == customerId && t.Id == transactionId);
         }
+
+        public async Task<Transaction?> GetCustomerFullTransaction(Guid customerId, int transactionDetailId)
+        {
+            return await dbSet.Include(t => t.Creator)
+                .Include(t => t.TransactionDetails)
+                .FirstOrDefaultAsync(t => t.CreatorId == customerId && t.TransactionDetails.Any(td => td.Id == transactionDetailId));
+        }
     }
 }

@@ -2,7 +2,6 @@
 using Application.ResponseDTOs.Transaction;
 using Application.Services.Interfaces;
 using AutoMapper;
-using Domain.Entities;
 using Infrastructure.Data.UnitOfWork;
 
 namespace Application.Services.ConcreteClasses
@@ -29,6 +28,17 @@ namespace Application.Services.ConcreteClasses
             if (transaction == null)
             {
                 throw new NotFoundException($"Cannot found information of transaction with ID '{transactionId.ToString()}'");
+            }
+            return mapper.Map<TransactionSummary>(transaction);
+        }
+
+        public async Task<TransactionSummary> GetPersonalFullTransactionByDetail(int transactionDetailId)
+        {
+            var customerId = jwtService.GetCurrentUserId();
+            var transaction = await unitOfWork.TransactionRepository.GetCustomerFullTransaction(customerId, transactionDetailId);
+            if (transaction == null)
+            {
+                throw new NotFoundException($"Cannot found information of transaction from transaction detail ID '{transactionDetailId.ToString()}'");
             }
             return mapper.Map<TransactionSummary>(transaction);
         }
