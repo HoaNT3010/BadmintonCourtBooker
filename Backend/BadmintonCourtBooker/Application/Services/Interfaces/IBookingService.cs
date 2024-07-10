@@ -9,5 +9,6 @@ namespace Application.Services.Interfaces
         Task<CreateBookingResponse?> CreateSingularBooking(Guid courtId, CreateBookingRequest bookingRequest);
         Task<CreateMultipleBookingResponse?> CreateMultipleBooking(Guid courtId, CreateMultipleBookingRequest bookingRequest);
         Task<PagedList<BookingShortDetail>?> GetCurrentCustomerBookings(BookingQueryRequest queryRequest);
+        Task<BookingDetail> GetCurrentCustomerBookingsDetail(Guid bookingId);
     }
 }

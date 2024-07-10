@@ -32,6 +32,17 @@ namespace Application.Mappers
                 .ForMember(d => d.EndTime, opt => opt.MapFrom(s => s.Slot != null ? DateTimeHelper.FormatTime(s.Slot.EndTime) : "N/A"));
 
             CreateMap<PagedList<Booking>, PagedList<BookingShortDetail>>();
+
+            CreateMap<User, BookingCustomer>()
+                .ForMember(d => d.Id, opt => opt.MapFrom(s => s.Id.ToString()));
+
+            CreateMap<Booking, BookingDetail>()
+                .ForMember(d => d.Id, opt => opt.MapFrom(s => s.Id.ToString()))
+                .ForMember(d => d.RentDate, opt => opt.MapFrom(s => DateTimeHelper.FormatDateWithName(s.RentDate)))
+                .ForMember(d => d.Status, opt => opt.MapFrom(s => s.Status.ToString()))
+                .ForMember(d => d.CreatedDate, opt => opt.MapFrom(s => DateTimeHelper.FormatDateTime(s.CreatedDate)))
+                .ForMember(d => d.StartTime, opt => opt.MapFrom(s => s.Slot != null ? DateTimeHelper.FormatTime(s.Slot.StartTime) : "N/A"))
+                .ForMember(d => d.EndTime, opt => opt.MapFrom(s => s.Slot != null ? DateTimeHelper.FormatTime(s.Slot.EndTime) : "N/A"));
         }
     }
 }

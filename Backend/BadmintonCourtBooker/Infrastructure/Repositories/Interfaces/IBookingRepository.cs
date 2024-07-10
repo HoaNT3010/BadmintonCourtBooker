@@ -6,5 +6,6 @@ namespace Infrastructure.Repositories.Interfaces
     {
         Task<Booking> GetBookingByCustomerIdAsync(Guid id);
         Task<List<Booking>?> GetPendingAndSuccessBookings(DateTime rentDate, int slotId);
+        Task<Booking?> GetFullCustomerBooking(Guid customerId, Guid bookingId);
     }
 }

@@ -10,7 +10,6 @@ using Domain.Entities;
 using Application.ResponseDTOs.Transaction;
 using Infrastructure.Utilities.Paging;
 using System.Linq.Expressions;
-using Application.ResponseDTOs.Court;
 
 namespace Application.Services.ConcreteClasses
 {
@@ -557,6 +556,17 @@ namespace Application.Services.ConcreteClasses
                     break;
             }
             return (q => q.OrderByDescending(b => b.RentDate).ThenBy(b => b.Slot.Id));
+        }
+
+        public async Task<BookingDetail> GetCurrentCustomerBookingsDetail(Guid bookingId)
+        {
+            var customerId = jwtService.GetCurrentUserId();
+            var result = await unitOfWork.BookingRepository.GetFullCustomerBooking(customerId, bookingId);
+            if (result == null)
+            {
+                throw new NotFoundException($"Cannot found information of booking with ID '{bookingId}'");
+            }
+            return mapper.Map<BookingDetail>(result);
         }
 
         #endregion

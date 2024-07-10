@@ -1,6 +1,4 @@
-﻿using Domain.Enums;
-
-namespace Application.ResponseDTOs.Transaction
+﻿namespace Application.ResponseDTOs.Transaction
 {
     public class BookingTransactionDetail
     {
