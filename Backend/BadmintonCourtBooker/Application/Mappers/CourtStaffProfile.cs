@@ -13,9 +13,9 @@ namespace Application.Mappers
     {
         public CourtStaffProfile()
         {
-            CreateMap<Court, StatsCourtResponse>()
-                .ForMember(d => d.Name, opt => opt.MapFrom(s => s.Name.ToString()))
-                .ForMember(d => d.Status, opt => opt.MapFrom(s => s.CourtStatus.ToString()));
+            CreateMap<Slot, StatsCourtResponse>()
+                .ForMember(d => d.StartTime, opt => opt.MapFrom(s => s.StartTime.ToString()))
+                .ForMember(d => d.EndTime, opt => opt.MapFrom(s => s.EndTime.ToString()));
         }
     }
 }

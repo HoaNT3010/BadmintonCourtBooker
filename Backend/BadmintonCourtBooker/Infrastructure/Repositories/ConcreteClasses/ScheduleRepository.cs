@@ -15,5 +15,12 @@ namespace Infrastructure.Repositories.ConcreteClasses
         {
             return await context.Schedules.Where(s => s.CourtId == courtId).ToListAsync();
         }
+
+        public async Task<Schedule?> GetScheduleToday(int today, Guid courtId)
+        {
+            var sche = await context.Schedules.Where(x => x.CourtId.Equals(courtId)).ToListAsync();
+            var scheToday = sche.FirstOrDefault(x => x.DayOfWeek.Equals((DayOfWeek)today));
+            return scheToday;
+        }
     }
 }
