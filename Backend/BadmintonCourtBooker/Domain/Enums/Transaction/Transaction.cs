@@ -8,4 +8,11 @@
         Pending,
         Cancel
     }
+
+    public enum TransactionOrderBy
+    {
+        CreateDate,
+        TotalAmount,
+        TotalBookingTime,
+    }
 }

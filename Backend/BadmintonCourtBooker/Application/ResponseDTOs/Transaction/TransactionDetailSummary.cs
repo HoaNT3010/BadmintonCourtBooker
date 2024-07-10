@@ -1,6 +1,6 @@
 ﻿namespace Application.ResponseDTOs.Transaction
 {
-    public class BookingTransactionDetail
+    public class TransactionDetailSummary
     {
         public int Id { get; set; }
 

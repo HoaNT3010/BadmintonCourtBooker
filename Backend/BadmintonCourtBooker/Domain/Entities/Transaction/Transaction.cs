@@ -29,7 +29,7 @@ namespace Domain.Entities
         public TransactionStatus Status { get; set; } = TransactionStatus.None;
 
         [Column(TypeName = "datetime2(0)")]
-        public DateTime CreatedDate = DateTime.UtcNow;
+        public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
 
         #region NavigationProperties
 

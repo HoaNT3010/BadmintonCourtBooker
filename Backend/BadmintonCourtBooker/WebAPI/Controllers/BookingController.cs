@@ -2,6 +2,7 @@
 using Application.RequestDTOs.Booking;
 using Application.ResponseDTOs.Booking;
 using Application.Services.Interfaces;
+using Infrastructure.Utilities.Paging;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
@@ -61,6 +62,40 @@ namespace WebAPI.Controllers
         public async Task<ActionResult<CreateMultipleBookingResponse>> CreateNewMultipleBooking([FromRoute] Guid courtId, [FromBody] CreateMultipleBookingRequest bookingRequest)
         {
             var result = await bookingService.CreateMultipleBooking(courtId, bookingRequest);
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Get paginated list of created bookings of current customer. Only Verified Customer can use this feature.
+        /// </summary>
+        /// <param name="queryRequest">Contains query and sorting options.</param>
+        /// <returns>List of customer's bookings.</returns>
+        [HttpGet]
+        [Route("personal")]
+        [Produces("application/json")]
+        [Authorize(policy: AuthorizationOptionsSetup.VerifiedCustomer)]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(PagedList<BookingShortDetail>))]
+        public async Task<ActionResult<PagedList<BookingShortDetail>>> GetCurrentCustomerBookings([FromQuery] BookingQueryRequest queryRequest)
+        {
+            var result = await bookingService.GetCurrentCustomerBookings(queryRequest);
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Get a booking with full information of current customer. Only Verified Customer can use this feature.
+        /// </summary>
+        /// <param name="id">ID of customer's booking.</param>
+        /// <returns>Full information of the booking.</returns>
+        [HttpGet]
+        [Route("personal/{id:guid}")]
+        [Produces("application/json")]
+        [Authorize(policy: AuthorizationOptionsSetup.VerifiedCustomer)]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(BookingDetail))]
+        [ProducesResponseType((int)HttpStatusCode.Unauthorized, Type = typeof(ErrorDetail))]
+        [ProducesResponseType((int)HttpStatusCode.NotFound, Type = typeof(ErrorDetail))]
+        public async Task<ActionResult<BookingDetail>> GetCurrentCustomerBookingDetail([FromRoute] Guid id)
+        {
+            var result = await bookingService.GetCurrentCustomerBookingsDetail(id);
             return Ok(result);
         }
     }
