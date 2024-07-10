@@ -10,8 +10,10 @@ namespace Application.ResponseDTOs.CourtStaff
 {
     public class StatsCourtResponse
     {
-        public string Name { get; set; } = String.Empty;
-        public string Status { get; set; } = String.Empty;
+        public TimeSpan StartTime { get; set; }
+
+        public TimeSpan EndTime { get; set; }
+
     }
     //public class CheckinBookingResponse
     //{

@@ -5,6 +5,7 @@ using AutoMapper;
 using Domain.Entities;
 using Domain.Enums;
 using Infrastructure.Data.UnitOfWork;
+using Microsoft.IdentityModel.Tokens;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -39,26 +40,41 @@ namespace Application.Services.ConcreteClasses
             else return false;
         }
         //View Status of court statu by employee
-        public async Task<StatsCourtResponse> ViewStatsOfCourt(Guid id)
+        public async Task<List<StatsCourtResponse>> ViewStatsOfCourt(Guid id)
         {
+            List<Slot> slot = new List<Slot>();
             await CheckUserIsEmpoloyee(id);
             //Get staff infor to check id;
             var staff = await unitOfWork.EmployeeRepository.GetEmployeeByUserID(id);
             //Get court in courtid of a staff
             var court = await unitOfWork.CourtRepository.GetByIdAsync(staff.CourtId);
+            //Get today
+            var whatTime = DateTime.Now.TimeOfDay;
+            var toDay = (int)(DateTime.Today.DayOfWeek);
             //Get schdule of this court
-            var schedule = await unitOfWork.ScheduleRepository.GetCourtSchedules(court.Id);
-            //Get slot of Court
-            List<Slot> slot = new List<Slot>();
-            foreach (var item in schedule)
+            //var schedule = await unitOfWork.ScheduleRepository.GetCourtSchedules(court.Id);
+            var schedule = await unitOfWork.ScheduleRepository.GetScheduleToday(toDay, court.Id);
+            //Get schedule of today 
+            if (schedule == null) throw new BadRequestException("Court today does not open!");
+
+            else
             {
-                var slots = await unitOfWork.SlotRepository.GetSlotByScheduleId(item.Id);
-                foreach (var slotitem in slots)
+                if (schedule.OpenTime > whatTime || whatTime > schedule.CloseTime) throw new BadRequestException("Court was closed!");
+                else
                 {
-                    slot.Add(slotitem);
+                    //Get slot of Court 
+                    var slots = await unitOfWork.SlotRepository.GetSlotByScheduleId(schedule.Id);
+                    foreach (var slotitem in slots)
+                    {
+                        if (slotitem.Available == true)
+                        {
+                            slot.Add(slotitem);
+                        }
+                    }
                 }
             }
-            return mapper.Map<StatsCourtResponse>(court);
+            if (slot.IsNullOrEmpty()) throw new BadRequestException("Don't have any shift for you today!");
+            return mapper.Map<List<StatsCourtResponse>>(slot);
         }
         #region UserPermission
 
