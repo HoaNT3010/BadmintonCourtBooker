@@ -10,6 +10,7 @@ using Domain.Entities;
 using BC = BCrypt.Net.BCrypt;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using System.Web.Mvc;
 
 namespace Application.Services.ConcreteClasses
 {
@@ -185,6 +186,7 @@ namespace Application.Services.ConcreteClasses
 
         public async Task<bool> UpdateUserById(Guid userId, CustomerUpdateRequest updatedUser)
         {
+            
             var existingUser = await unitOfWork.UserRepository.GetByIdAsync(userId);
             if (existingUser == null)
             {
