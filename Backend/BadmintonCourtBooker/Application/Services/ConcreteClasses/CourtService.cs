@@ -64,6 +64,7 @@ namespace Application.Services.ConcreteClasses
                     MethodType = PaymentMethodType.OnCourt,
                     CourtId = newCourt.Id,
                     Account = "On-court Payment",
+                    Status = PaymentMethodStatus.Active,
                 }
             };
 
@@ -186,6 +187,25 @@ namespace Application.Services.ConcreteClasses
             catch (Exception ex)
             {
                 throw new Exception($"An unexpected error occurred when trying to deactivate court: {ex.Message}");
+            }
+        }
+
+        public async Task<bool> SoftDeleteCourt(Guid id)
+        {
+            await CheckUserCourtEditingPermission(id);
+
+            var court = await unitOfWork.CourtRepository.GetByIdAsync(id);
+            court!.CourtStatus = CourtStatus.Active;
+
+            try
+            {
+                unitOfWork.CourtRepository.Update(court);
+                var result = await unitOfWork.SaveChangeAsync();
+                return result > 0 ? true : false;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"An unexpected error occurred when trying to delete court: {ex.Message}");
             }
         }
 
@@ -577,6 +597,11 @@ namespace Application.Services.ConcreteClasses
             if (court == null)
             {
                 throw new BadRequestException($"Cannot find badminton court with id: {courtId}");
+            }
+
+            if (court.CourtStatus == CourtStatus.Removed)
+            {
+                throw new BadRequestException($"Badminton court with id: {courtId} has been deleted and no longer can be interact with!");
             }
 
             await CanUserEditCourt(currentUserId, court);

@@ -23,6 +23,9 @@ namespace Application
             services.AddScoped<IJwtService, JwtService>();
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<ICourtService, CourtService>();
+            services.AddScoped<ICourtStaffService, CourtStaffService>();
+            services.AddScoped<IBookingService, BookingService>();
+            services.AddScoped<ITransactionService, TransactionService>();
 
             return services;
         }

@@ -15,5 +15,10 @@ namespace Infrastructure.Repositories.ConcreteClasses
         {
             return await context.Employees.Where(e => e.CourtId == courtId).ToListAsync();
         }
+
+        public async Task<Employee?> GetEmployeeByUserID(Guid? id)
+        {
+            return await context.Employees.FirstOrDefaultAsync(x => x.UserId.Equals(id));
+        }
     }
 }

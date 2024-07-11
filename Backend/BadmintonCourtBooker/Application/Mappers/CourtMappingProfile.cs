@@ -1,4 +1,5 @@
 ﻿using Application.RequestDTOs.Court;
+using Application.ResponseDTOs.Booking;
 using Application.ResponseDTOs.Court;
 using Application.Utilities;
 using AutoMapper;
@@ -65,6 +66,9 @@ namespace Application.Mappers
                 .ForMember(d => d.CourtStatus, opt => opt.MapFrom(s => s.CourtStatus.ToString()));
 
             CreateMap<PagedList<Court>, PagedList<CourtShortDetail>>();
+
+            CreateMap<Court, BookingCourt>()
+                .ForMember(d => d.Id, opt => opt.MapFrom(s => s.Id.ToString()));
         }
     }
 }

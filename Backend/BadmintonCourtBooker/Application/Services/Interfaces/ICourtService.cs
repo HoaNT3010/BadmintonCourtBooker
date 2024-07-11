@@ -15,5 +15,6 @@ namespace Application.Services.Interfaces
         Task<bool> ActivateCourt(Guid id);
         Task<bool> DeactivateCourt(Guid id);
         Task<PagedList<CourtShortDetail>> SearchCourt(CourtSearchRequest searchRequest);
+        Task<bool> SoftDeleteCourt(Guid id);
     }
 }

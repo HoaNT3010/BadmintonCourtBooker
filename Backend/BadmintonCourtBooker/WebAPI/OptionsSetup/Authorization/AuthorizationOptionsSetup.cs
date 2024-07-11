@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Options;
 using Domain.Enums;
+using WebAPI.Controllers;
 
 namespace WebAPI.OptionsSetup.Authorization
 {
@@ -9,6 +10,9 @@ namespace WebAPI.OptionsSetup.Authorization
         public const string UnverifiedCustomer = "UnverifiedCustomer";
         public const string VerifiedCustomer = "VerifiedCustomer";
         public const string CourtAdministrator = "CourtCreator";
+        public const string CourtStaff = "CourtStaff";
+        public const string SystemAdministrator = "SystemAdministrator";
+        public const string VerifiedUser = "VerifiedUser";
 
         public void Configure(AuthorizationOptions options)
         {
@@ -27,6 +31,21 @@ namespace WebAPI.OptionsSetup.Authorization
             options.AddPolicy(CourtAdministrator, policy =>
             {
                 policy.RequireClaim("Role", UserRole.SystemAdmin.ToString(), UserRole.CourtManager.ToString());
+            });
+
+            options.AddPolicy(SystemAdministrator, policy =>
+            {
+                policy.RequireClaim("Role", UserRole.SystemAdmin.ToString());
+            });
+
+            options.AddPolicy(VerifiedUser, policy =>
+            {
+                policy.RequireClaim("Status", UserStatus.Active.ToString());
+            });
+            options.AddPolicy(CourtStaff, policy =>
+            {
+                policy.RequireClaim("Role", UserRole.CourtStaff.ToString());
+                policy.RequireClaim("Status", UserStatus.Active.ToString());
             });
         }
     }
