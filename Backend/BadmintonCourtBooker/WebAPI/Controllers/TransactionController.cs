@@ -77,5 +77,25 @@ namespace WebAPI.Controllers
             var result = await transactionService.GetPersonalTransactions(queryRequest);
             return Ok(result);
         }
+
+        /// <summary>
+        /// Process customer payment of a booking time transaction. Only Verified Customer can use this method.
+        /// If there are any invalid booking in the transaction, the transaction and it's booking will be cancel.
+        /// </summary>
+        /// <param name="id">Id of transaction need to be process.</param>
+        /// <returns>Transaction summary after being processed.</returns>
+        [HttpPost]
+        [Route("process/{id:guid}/booking-time")]
+        [Produces("application/json")]
+        [Authorize(policy: AuthorizationOptionsSetup.VerifiedCustomer)]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(TransactionSummary))]
+        [ProducesResponseType((int)HttpStatusCode.Unauthorized, Type = typeof(ErrorDetail))]
+        [ProducesResponseType((int)HttpStatusCode.Forbidden, Type = typeof(ErrorDetail))]
+        [ProducesResponseType((int)HttpStatusCode.NotFound, Type = typeof(ErrorDetail))]
+        public async Task<ActionResult<TransactionSummary>> ProcessBookingTimeTransaction([FromRoute] Guid id)
+        {
+            var result = await transactionService.ProcessBookingTimeTransaction(id);
+            return Ok(result);
+        }
     }
 }

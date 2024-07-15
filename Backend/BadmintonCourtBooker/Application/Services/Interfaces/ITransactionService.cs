@@ -9,5 +9,6 @@ namespace Application.Services.Interfaces
         Task<TransactionSummary> GetPersonalFullTransaction(Guid transactionId);
         Task<TransactionSummary> GetPersonalFullTransactionByDetail(int transactionDetailId);
         Task<PagedList<TransactionShortSummary>?> GetPersonalTransactions(TransactionQueryRequest queryRequest);
+        Task<TransactionSummary> ProcessBookingTimeTransaction(Guid transactionId);
     }
 }
