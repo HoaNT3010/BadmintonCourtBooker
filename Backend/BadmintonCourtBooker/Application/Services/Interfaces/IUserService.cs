@@ -17,6 +17,6 @@ namespace Application.Services.Interfaces
         Task<PagedResult<ListCustomerResponse>> SearchByNameByEmailByPhone(SearchCustomerRequest searchCustomerRequest, int pageNumber, int pageSize);
         Task<bool> UpdateUserById(Guid userId, CustomerUpdateRequest updatedUser);
         Task<bool> UpdateCurrentUserById(CustomerUpdateRequest updatedUser);
-        Task<bool> UpdateRoleUserById(Guid requestId, UserRole Role);
+        Task<(bool isSuccess, string message)> UpdateRoleUserById(Guid requestId, UserRole Role);
     }
 }

@@ -90,8 +90,17 @@ namespace WebAPI.Controllers
         [Authorize(policy: AuthorizationOptionsSetup.SystemAdministrator)]
         public async Task<ActionResult<User>> SearchByNameByPhoneByEmail([FromQuery] SearchCustomerRequest searchCustomerRequest, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 5)
         {
-            var result = await userService.SearchByNameByEmailByPhone(searchCustomerRequest, pageNumber, pageSize);
-            return Ok(result);
+            if (ModelState.IsValid)
+            {
+                var result = await userService.SearchByNameByEmailByPhone(searchCustomerRequest, pageNumber, pageSize);
+                return Ok(result);
+            }
+            else
+            {
+                return BadRequest(ModelState);
+            }
+
+
         }
 
 
@@ -106,8 +115,16 @@ namespace WebAPI.Controllers
         [Authorize(policy: AuthorizationOptionsSetup.SystemAdministrator)]
         public async Task<ActionResult<User>> UpdateUserById([FromRoute] Guid idRequest, [FromBody] CustomerUpdateRequest customer)
         {
-            var result = await userService.UpdateUserById(idRequest, customer);
-            return Ok(result);
+            if (ModelState.IsValid)
+            {
+                var result = await userService.UpdateUserById(idRequest, customer);
+                return Ok(result);
+            }
+            else
+            {
+                return BadRequest(ModelState);
+            }
+
         }
 
         /// <summary>
@@ -120,8 +137,16 @@ namespace WebAPI.Controllers
         [Authorize(policy: AuthorizationOptionsSetup.VerifiedUser)]
         public async Task<ActionResult<User>> UpdateCurrentUserById([FromBody] CustomerUpdateRequest customer)
         {
-            var result = await userService.UpdateCurrentUserById(customer);
-            return Ok(result);
+            if (ModelState.IsValid)
+            {
+                var result = await userService.UpdateCurrentUserById(customer);
+                return Ok(result);
+            }
+            else
+            {
+                return BadRequest(ModelState);
+            }
+
         }
 
 
@@ -136,8 +161,13 @@ namespace WebAPI.Controllers
         [Authorize(policy: AuthorizationOptionsSetup.SystemAdministrator)]
         public async Task<ActionResult<User>> UpdateRoleUserById([FromRoute] Guid idRequest, UserRole role)
         {
-            var result = await userService.UpdateRoleUserById(idRequest, role);
-            return Ok(result);
+            var (isSuccess, message) = await userService.UpdateRoleUserById(idRequest, role);
+            if (!isSuccess)
+            {
+                return BadRequest(new { success = isSuccess, message });
+            }
+
+            return Ok(new { success = isSuccess, message });
         }
     }
 }

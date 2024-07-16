@@ -10,6 +10,7 @@ using Domain.Entities;
 using BC = BCrypt.Net.BCrypt;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using System.Web.Mvc;
 
 namespace Application.Services.ConcreteClasses
 {
@@ -185,6 +186,7 @@ namespace Application.Services.ConcreteClasses
 
         public async Task<bool> UpdateUserById(Guid userId, CustomerUpdateRequest updatedUser)
         {
+            
             var existingUser = await unitOfWork.UserRepository.GetByIdAsync(userId);
             if (existingUser == null)
             {
@@ -239,14 +241,17 @@ namespace Application.Services.ConcreteClasses
             return true;
         }
 
-        public async Task<bool> UpdateRoleUserById(Guid requestId, UserRole Role)
+        public async Task<(bool isSuccess, string message)> UpdateRoleUserById(Guid requestId, UserRole Role)
         {
             var existProfile = await unitOfWork.UserRepository.GetByIdAsync(requestId);
             if (existProfile == null)
             {
                 throw new NotFoundException("User Not Exist");
             }
-            
+            if (existProfile.Role.Equals(Role))
+            {
+                return (false, "User role is already the same.");
+            }
             existProfile.Role = Role;
             
             try
@@ -259,7 +264,7 @@ namespace Application.Services.ConcreteClasses
                 throw new Exception(ex.InnerException.Message);
             }
 
-            return true;
+            return (true, "User role updated successfully.");
         }
     }
 }
