@@ -166,5 +166,24 @@ namespace WebAPI.Controllers
             var result = await transactionService.HandleBookingTimeRechargeRequest(rechargeRequest);
             return Ok(result);
         }
+
+        /// <summary>
+        ///  Cancel a pending transaction created by current user. Only Verified Customer can use this method.
+        /// </summary>
+        /// <param name="id">Id of transaction.</param>
+        /// <returns>Transaction summary after cancelation.</returns>
+        [HttpPut]
+        [Route("{id:guid}/cancel")]
+        [Produces("application/json")]
+        [Authorize(policy: AuthorizationOptionsSetup.VerifiedCustomer)]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(TransactionSummary))]
+        [ProducesResponseType((int)HttpStatusCode.Unauthorized, Type = typeof(ErrorDetail))]
+        [ProducesResponseType((int)HttpStatusCode.NotFound, Type = typeof(ErrorDetail))]
+        [ProducesResponseType((int)HttpStatusCode.Forbidden, Type = typeof(ErrorDetail))]
+        public async Task<ActionResult<TransactionSummary>> CancelTransaction([FromRoute] Guid id)
+        {
+            var result = await transactionService.CancelTransaction(id);
+            return Ok(result);
+        }
     }
 }

@@ -15,5 +15,6 @@ namespace Application.Services.Interfaces
         Task<MoMoCreatePaymentResponse> CreateMoMoPaymentForBookingTransaction(Guid transactionId);
         Task ProcessMoMoPaymentResponse(MoMoIpnRequest ipnRequest);
         Task<MoMoCreatePaymentResponse> HandleBookingTimeRechargeRequest(BookingTimeRechargeRequest rechargeRequest);
+        Task<TransactionSummary> CancelTransaction(Guid transactionId);
     }
 }

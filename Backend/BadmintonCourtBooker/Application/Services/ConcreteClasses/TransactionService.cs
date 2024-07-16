@@ -274,6 +274,29 @@ namespace Application.Services.ConcreteClasses
 
         #endregion
 
+        #region Cancel
+
+        public async Task<TransactionSummary> CancelTransaction(Guid transactionId)
+        {
+            var customerId = jwtService.GetCurrentUserId();
+            var transaction = await unitOfWork.TransactionRepository.GetCustomerFullTransaction(customerId, transactionId);
+            if (transaction == null)
+            {
+                throw new NotFoundException($"Cannot found information of transaction with ID '{transactionId.ToString()}'");
+            }
+            if (transaction.TransactionDetails.Any(td => td.Type == TransactionDetailType.CourtBooking))
+            {
+                await CancelTransactionAndBooking(transaction);
+            }
+            else
+            {
+                await CancelTransaction(transaction);
+            }
+            return mapper.Map<TransactionSummary>(transaction);
+        }
+
+        #endregion
+
         #region Utilities
 
         private Expression<Func<Transaction, bool>> GetTransactionFilterExpression(Guid? customerId, TransactionQueryRequest queryRequest)
