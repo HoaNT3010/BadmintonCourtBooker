@@ -1,13 +1,17 @@
 ﻿using Application.ErrorHandlers;
+using Application.RequestDTOs.MoMo;
 using Application.RequestDTOs.Transaction;
 using Application.ResponseDTOs.Booking;
+using Application.ResponseDTOs.MoMo;
 using Application.ResponseDTOs.Transaction;
 using Application.Services.Interfaces;
+using Application.Utilities;
 using AutoMapper;
 using Domain.Entities;
 using Domain.Enums;
 using Infrastructure.Data.UnitOfWork;
 using Infrastructure.Utilities.Paging;
+using Newtonsoft.Json;
 using System.Linq.Expressions;
 
 namespace Application.Services.ConcreteClasses
@@ -17,12 +21,14 @@ namespace Application.Services.ConcreteClasses
         private readonly IUnitOfWork unitOfWork;
         private readonly IJwtService jwtService;
         private readonly IMapper mapper;
+        private readonly IMoMoService moMoService;
 
-        public TransactionService(IJwtService jwtService, IUnitOfWork unitOfWork, IMapper mapper)
+        public TransactionService(IJwtService jwtService, IUnitOfWork unitOfWork, IMapper mapper, IMoMoService moMoService)
         {
             this.jwtService = jwtService;
             this.unitOfWork = unitOfWork;
             this.mapper = mapper;
+            this.moMoService = moMoService;
         }
 
         #region Query
@@ -137,6 +143,75 @@ namespace Application.Services.ConcreteClasses
             }
             var result = await unitOfWork.TransactionRepository.GetCustomerFullTransaction(customer.Id, transaction.Id);
             return mapper.Map<TransactionSummary>(result);
+        }
+
+        public async Task<MoMoCreatePaymentResponse> CreateMoMoPaymentForBookingTransaction(Guid transactionId)
+        {
+            // Get current customer
+            var customerId = jwtService.GetCurrentUserId();
+            var customer = await unitOfWork.UserRepository.GetByIdAsync(customerId);
+            if (customer == null)
+            {
+                throw new BadRequestException("Failed to retrieved customer information!");
+            }
+
+            // Get transaction information
+            var transaction = await unitOfWork.TransactionRepository.GetCustomerFullTransaction(customerId, transactionId);
+            if (transaction == null)
+            {
+                throw new BadRequestException($"Failed to retrieved information of transaction with ID: {transactionId}!");
+            }
+            if (transaction.Status != TransactionStatus.Pending)
+            {
+                throw new BadRequestException($"Transaction with ID: {transactionId} is not in PENDING status! Only PENDING transaction can be process!");
+            }
+            if (transaction.TotalAmount <= 0)
+            {
+                throw new BadRequestException($"Transaction with ID: {transactionId} is not a monetary transaction! Only monetary transaction can be process in this method!");
+            }
+            if (transaction.PaymentMethod != PaymentMethodType.MoMo)
+            {
+                throw new BadRequestException($"Transaction with ID: {transactionId} does not accept MoMo as a payment method! This endpoint only support MoMo payment method!");
+            }
+
+            // Validate booking slot(s) of transaction
+            var validateResult = await ValidateTransactionBookingSlots(transaction);
+            if (!validateResult)
+            {
+                // If transaction 's booking slot and rent time already has successful booking
+                // Cancel the transaction and transaction's booking
+                await CancelTransactionAndBooking(transaction);
+                throw new BadRequestException($"Failed to process transaction. The booking slot of the transaction has already been booked. The transaction and its booking has been set to CANCEL status.");
+            }
+
+            var paymentMethod = moMoService.CreateMoMoPaymentForBookingTransaction(transaction);
+            return paymentMethod != null ? paymentMethod : throw new Exception($"Unexpected error occurred when trying to obtain MoMo payment method!");
+        }
+
+        public async Task ProcessMoMoPaymentResponse(MoMoIpnRequest ipnRequest)
+        {
+            var extraData = JsonConvert.DeserializeObject<MoMoExtraData>(HashHelper.DecodeFromBase64(ipnRequest.extraData));
+            if (extraData == null)
+            {
+                throw new Exception("Unable to received extra data from MoMo payment transaction!");
+            }
+            var transaction = await unitOfWork.TransactionRepository.GetCustomerFullTransaction(Guid.Parse(extraData.CustomerId), Guid.Parse(extraData.TransactionId));
+            if (transaction == null)
+            {
+                throw new BadRequestException($"[MoMo Ipn] Failed to retrieved information of transaction with ID: {extraData.TransactionId}!");
+            }
+            if (transaction.Status != TransactionStatus.Pending)
+            {
+                throw new BadRequestException($"[MoMo Ipn] Transaction with ID: {extraData.TransactionId} is not in PENDING status! Only PENDING transaction can be process!");
+            }
+            if (extraData.TransactionType == TransactionDetailType.CourtBooking.ToString())
+            {
+                await HandleCourtBookingIpn(ipnRequest, transaction);
+            }
+            else if (extraData.TransactionType == TransactionDetailType.BookingTimeRecharge.ToString())
+            {
+
+            }
         }
 
         #endregion
@@ -293,6 +368,47 @@ namespace Application.Services.ConcreteClasses
                 throw new Exception($"Error when trying to cancel all pending bookings: {ex.Message}");
             }
 
+        }
+
+        private async Task HandleCourtBookingIpn(MoMoIpnRequest ipnRequest, Transaction transaction)
+        {
+            // MoMo payment transaction failed, cancel transaction and bookings
+            transaction.TransactionCode = ipnRequest.transId.ToString();
+            if (ipnRequest.resultCode != 0)
+            {
+
+                await CancelTransactionAndBooking(transaction);
+            }
+            // MoMo payment transaction success, change status of transaction and bookings to success
+            else
+            {
+                // Process transaction
+                transaction.Status = TransactionStatus.Success;
+                try
+                {
+                    await unitOfWork.BeginTransactionAsync();
+                    unitOfWork.TransactionRepository.Update(transaction);
+                    await unitOfWork.SaveChangeAsync();
+                    // Update bookings of transaction
+                    foreach (var detail in transaction.TransactionDetails)
+                    {
+                        var booking = await unitOfWork.BookingRepository.GetBookingByTransactionDetail(detail.Id);
+                        if (booking == null)
+                        {
+                            throw new Exception($"Process transaction from MoMo ipn: Failed to retrieved information of booking with transaction detail ID: {detail.Id}");
+                        }
+                        booking.Status = BookingStatus.Success;
+                        unitOfWork.BookingRepository.Update(booking);
+                        await unitOfWork.SaveChangeAsync();
+                    }
+                    await unitOfWork.CommitAsync();
+                }
+                catch (Exception ex)
+                {
+                    await unitOfWork.RollbackAsync();
+                    throw new Exception($"Error when trying to process transaction and booking with MoMo Ipn: {ex.Message}");
+                }
+            }
         }
 
         #endregion
