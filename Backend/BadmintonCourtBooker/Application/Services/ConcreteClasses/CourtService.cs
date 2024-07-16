@@ -1,4 +1,5 @@
 ﻿using Application.ErrorHandlers;
+using Application.RequestDTOs.Auth;
 using Application.RequestDTOs.Court;
 using Application.ResponseDTOs.Court;
 using Application.Services.Interfaces;
@@ -8,6 +9,7 @@ using Domain.Entities;
 using Domain.Enums;
 using Infrastructure.Data.UnitOfWork;
 using Infrastructure.Utilities.Paging;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
 
@@ -207,6 +209,35 @@ namespace Application.Services.ConcreteClasses
             {
                 throw new Exception($"An unexpected error occurred when trying to delete court: {ex.Message}");
             }
+        }
+
+        public async Task<CourtDetail> UpdateCourtById(Guid courtId, CourtUpdateRequest courtInfoRequest)
+        {
+
+            var existingCourt = await unitOfWork.CourtRepository.GetByIdAsync(courtId);
+            
+            if (existingCourt == null)
+            {
+                throw new NotFoundException("Court not found");
+            }
+            if (existingCourt.CourtStatus == CourtStatus.Removed)
+            {
+                throw new BadRequestException("Court is deleted");
+            }
+            mapper.Map(courtInfoRequest, existingCourt);
+            try
+            {
+                unitOfWork.CourtRepository.Update(existingCourt);
+
+                await unitOfWork.SaveChangeAsync();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+            var court = await unitOfWork.CourtRepository.GetCourtFullDetail(courtId);
+
+            return mapper.Map<CourtDetail>(court);
         }
 
         #endregion

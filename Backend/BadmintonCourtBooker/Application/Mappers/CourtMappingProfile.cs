@@ -69,6 +69,15 @@ namespace Application.Mappers
 
             CreateMap<Court, BookingCourt>()
                 .ForMember(d => d.Id, opt => opt.MapFrom(s => s.Id.ToString()));
+
+            CreateMap<CourtUpdateRequest, Court>()
+                .ForMember(d => d.Name, opt => opt.MapFrom(s => s.Name.ToString()))
+                .ForMember(d => d.Description, opt => opt.MapFrom(s => s.Description.ToString()))
+                .ForMember(d => d.PhoneNumber, opt => opt.MapFrom(s => s.PhoneNumber.ToString()))
+                .ForMember(d => d.Address, opt => opt.MapFrom(s => s.Address.ToString()))
+                .ForMember(d => d.CourtType, opt => opt.MapFrom(s => s.CourtType.ToString()));
+
+
         }
     }
 }
