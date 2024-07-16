@@ -25,5 +25,12 @@ namespace Infrastructure.Repositories.ConcreteClasses
             return await context.Bookings
                 .FirstOrDefaultAsync(x => x.CustomerId.Equals(id));
         }
+
+        public async Task<List<Booking>> GetBookingInSlotToday(DateTime today, int slotId)
+        {
+            return await dbSet.Include(c => c.Customer)
+                .Include(b => b.Slot)
+                .Where(d => d.RentDate.Equals(today) && d.SlotId == slotId).ToListAsync();
+        }
     }
 }
