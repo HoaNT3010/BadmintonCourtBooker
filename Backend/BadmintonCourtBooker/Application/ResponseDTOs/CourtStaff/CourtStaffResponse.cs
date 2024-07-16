@@ -15,6 +15,16 @@ namespace Application.ResponseDTOs.CourtStaff
         public TimeSpan EndTime { get; set; }
 
     }
+    public class BookingViewBySlot()
+    {
+        public Guid BookingId { get; set; }
+        public bool Checkin { get; set; }
+
+        public string FullName { get; set; }
+        public TimeSpan Start {  get; set; }
+        public TimeSpan End { get; set; }
+
+    }
     //public class CheckinBookingResponse
     //{
     //    public bool CheckIn { get; set; } = false;

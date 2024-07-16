@@ -40,9 +40,10 @@ namespace Application.Services.ConcreteClasses
             else return false;
         }
         //View Status of court statu by employee
-        public async Task<List<StatsCourtResponse>> ViewStatsOfCourt(Guid id)
+        public async Task<(List<StatsCourtResponse>,List<BookingViewBySlot>)> ViewStatsOfCourt(Guid id)
         {
             List<Slot> slot = new List<Slot>();
+            List<Booking> booking = new List<Booking>();
             await CheckUserIsEmpoloyee(id);
             //Get staff infor to check id;
             var staff = await unitOfWork.EmployeeRepository.GetEmployeeByUserID(id);
@@ -66,15 +67,27 @@ namespace Application.Services.ConcreteClasses
                     var slots = await unitOfWork.SlotRepository.GetSlotByScheduleId(schedule.Id);
                     foreach (var slotitem in slots)
                     {
+                        //Only get slot active
                         if (slotitem.Available == true)
                         {
+                            var today = DateTime.Now.Date;
                             slot.Add(slotitem);
+                            var book = await unitOfWork.BookingRepository.GetBookingInSlotToday(today, slotitem.Id);
+                            if(book != null)
+                            {
+                                foreach(var bookitem in book)
+                                {
+                                    booking.Add(bookitem);
+                                }
+                            }
                         }
                     }
                 }
             }
             if (slot.IsNullOrEmpty()) throw new BadRequestException("Don't have any shift for you today!");
-            return mapper.Map<List<StatsCourtResponse>>(slot);
+            var slotlist = mapper.Map<List<StatsCourtResponse>>(slot);
+            var bookings = mapper.Map<List<BookingViewBySlot>>(booking);
+            return (slotlist, bookings);
         }
         #region UserPermission
 
