@@ -136,7 +136,7 @@ namespace WebAPI.Controllers
         }
 
         /// <summary>
-        /// DO NOT USE THIS ENDPOINT! Only for MoMo to sent payment result.
+        /// DO NOT USE THIS ENDPOINT! Only for MoMo to sent payment result. 
         /// </summary>
         /// <param name="ipnRequest"></param>
         /// <returns></returns>
@@ -146,6 +146,44 @@ namespace WebAPI.Controllers
         {
             Log.Information("Received MoMo payment transaction response from HTTP GET return method!");
             return NoContent();
+        }
+
+        /// <summary>
+        /// Request a recharge request for customer's booking time with MoMo payment method. Only Verified Customer can use this method.
+        /// </summary>
+        /// <param name="rechargeRequest">Data of recharge request.</param>
+        /// <returns>MoMo payment method for recharge request.</returns>
+        [HttpPost]
+        [Route("create/time-recharge/momo")]
+        [Produces("application/json")]
+        [Authorize(policy: AuthorizationOptionsSetup.VerifiedCustomer)]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(MoMoCreatePaymentResponse))]
+        [ProducesResponseType((int)HttpStatusCode.Unauthorized, Type = typeof(ErrorDetail))]
+        [ProducesResponseType((int)HttpStatusCode.Forbidden, Type = typeof(ErrorDetail))]
+        [ProducesResponseType((int)HttpStatusCode.NotFound, Type = typeof(ErrorDetail))]
+        public async Task<ActionResult<MoMoCreatePaymentResponse>> CreateBookingTimeRechargeRequest([FromBody] BookingTimeRechargeRequest rechargeRequest)
+        {
+            var result = await transactionService.HandleBookingTimeRechargeRequest(rechargeRequest);
+            return Ok(result);
+        }
+
+        /// <summary>
+        ///  Cancel a pending transaction created by current user. Only Verified Customer can use this method.
+        /// </summary>
+        /// <param name="id">Id of transaction.</param>
+        /// <returns>Transaction summary after cancelation.</returns>
+        [HttpPut]
+        [Route("{id:guid}/cancel")]
+        [Produces("application/json")]
+        [Authorize(policy: AuthorizationOptionsSetup.VerifiedCustomer)]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(TransactionSummary))]
+        [ProducesResponseType((int)HttpStatusCode.Unauthorized, Type = typeof(ErrorDetail))]
+        [ProducesResponseType((int)HttpStatusCode.NotFound, Type = typeof(ErrorDetail))]
+        [ProducesResponseType((int)HttpStatusCode.Forbidden, Type = typeof(ErrorDetail))]
+        public async Task<ActionResult<TransactionSummary>> CancelTransaction([FromRoute] Guid id)
+        {
+            var result = await transactionService.CancelTransaction(id);
+            return Ok(result);
         }
     }
 }

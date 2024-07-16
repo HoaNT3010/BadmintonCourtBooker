@@ -210,8 +210,89 @@ namespace Application.Services.ConcreteClasses
             }
             else if (extraData.TransactionType == TransactionDetailType.BookingTimeRecharge.ToString())
             {
-
+                await HandleBookingTimeIpn(ipnRequest, transaction);
             }
+        }
+
+        #endregion
+
+        #region ProcessRechargeTransaction
+
+        public async Task<MoMoCreatePaymentResponse> HandleBookingTimeRechargeRequest(BookingTimeRechargeRequest rechargeRequest)
+        {
+            // Get current customer
+            var customerId = jwtService.GetCurrentUserId();
+            var customer = await unitOfWork.UserRepository.GetByIdAsync(customerId);
+            if (customer == null)
+            {
+                throw new BadRequestException("Failed to retrieved customer information!");
+            }
+
+            var hasPendingRechargeTransaction = await unitOfWork.TransactionRepository.IsAnyPendingRechargeTransaction(customerId);
+            if (hasPendingRechargeTransaction)
+            {
+                throw new BadRequestException($"Customer '{customerId.ToString()}' already has a pending booking time recharge transaction!");
+            }
+
+            Guid newTransactionId = Guid.NewGuid();
+            Transaction transaction = new Transaction()
+            {
+                Id = newTransactionId,
+                Account = null,
+                TotalAmount = rechargeRequest.RechargeAmount * 100000,
+                TotalBookingTime = rechargeRequest.RechargeAmount,
+                TransactionCode = null,
+                PaymentMethod = PaymentMethodType.MoMo,
+                Status = TransactionStatus.Pending,
+                CreatorId = customerId,
+            };
+
+            TransactionDetail transactionDetail = new TransactionDetail()
+            {
+                Description = $"Customer '{customerId.ToString()}' recharge booking time to their account with amount: {rechargeRequest.RechargeAmount}",
+                Amount = transaction.TotalAmount,
+                BookingTime = transaction.TotalBookingTime,
+                Type = TransactionDetailType.BookingTimeRecharge,
+                TransactionId = newTransactionId,
+            };
+            transaction.TransactionDetails.Add(transactionDetail);
+
+            try
+            {
+                await unitOfWork.TransactionRepository.AddAsync(transaction);
+                var addResult = await unitOfWork.SaveChangeAsync();
+            }
+            catch (Exception ex)
+            {
+
+                throw new Exception($"Unexpected error occurred when trying to add new booking time recharge transaction: {ex.Message}");
+            }
+
+            var paymentMethod = moMoService.CreateMoMoPaymentForRechargeTransaction(transaction);
+            return paymentMethod != null ? paymentMethod : throw new Exception($"Unexpected error occurred when trying to obtain MoMo payment method for booking time recharge request!");
+        }
+
+        #endregion
+
+        #region Cancel
+
+        public async Task<TransactionSummary> CancelTransaction(Guid transactionId)
+        {
+            var customerId = jwtService.GetCurrentUserId();
+            var transaction = await unitOfWork.TransactionRepository.GetCustomerFullTransaction(customerId, transactionId);
+            if (transaction == null)
+            {
+                throw new NotFoundException($"Cannot found information of transaction with ID '{transactionId.ToString()}'");
+            }
+            if (transaction.TransactionDetails.Any(td => td.Type == TransactionDetailType.CourtBooking))
+            {
+                await CancelTransactionAndBooking(transaction);
+            }
+            else
+            {
+                await CancelTransaction(transaction);
+            }
+            return mapper.Map<TransactionSummary>(transaction);
         }
 
         #endregion
@@ -223,6 +304,7 @@ namespace Application.Services.ConcreteClasses
             Expression<Func<Transaction, bool>> baseExp = (t => t.CreatorId == customerId);
             Expression<Func<Transaction, bool>>? statusExp = queryRequest.Status == TransactionStatus.None ? null : (t => t.Status == queryRequest.Status);
             Expression<Func<Transaction, bool>>? methodTypeExp = queryRequest.MethodType == PaymentMethodType.None ? null : (t => t.PaymentMethod == queryRequest.MethodType);
+            Expression<Func<Transaction, bool>>? typeExp = queryRequest.Type == TransactionDetailType.None ? null : (t => t.TransactionDetails.Any(td => td.Type == queryRequest.Type));
 
             ParameterExpression parameter = Expression.Parameter(typeof(Transaction));
             Expression combinedBody = Expression.Invoke(baseExp, parameter);
@@ -235,6 +317,11 @@ namespace Application.Services.ConcreteClasses
             if (methodTypeExp != null)
             {
                 combinedBody = Expression.AndAlso(combinedBody, Expression.Invoke(methodTypeExp, parameter));
+            }
+
+            if (typeExp != null)
+            {
+                combinedBody = Expression.AndAlso(combinedBody, Expression.Invoke(typeExp, parameter));
             }
 
             return Expression.Lambda<Func<Transaction, bool>>(combinedBody, parameter);
@@ -408,6 +495,59 @@ namespace Application.Services.ConcreteClasses
                     await unitOfWork.RollbackAsync();
                     throw new Exception($"Error when trying to process transaction and booking with MoMo Ipn: {ex.Message}");
                 }
+            }
+        }
+
+        private async Task HandleBookingTimeIpn(MoMoIpnRequest ipnRequest, Transaction transaction)
+        {
+            // MoMo payment transaction failed, cancel transaction and bookings
+            transaction.TransactionCode = ipnRequest.transId.ToString();
+            if (ipnRequest.resultCode != 0)
+            {
+                await CancelTransaction(transaction);
+            }
+            // MoMo payment transaction success, change status of transaction to success and add booking time to customer's account
+            else
+            {
+                // Process transaction
+                transaction.Status = TransactionStatus.Success;
+                try
+                {
+                    await unitOfWork.BeginTransactionAsync();
+                    unitOfWork.TransactionRepository.Update(transaction);
+                    await unitOfWork.SaveChangeAsync();
+                    // Update customer's booking time
+                    var customer = await unitOfWork.UserRepository.GetByIdAsync(transaction.CreatorId!);
+                    if (customer == null)
+                    {
+                        throw new Exception($"Process transaction from MoMo ipn: Failed to retrieved customer with ID '{transaction.CreatorId}' information!");
+                    }
+                    customer.BookingTime += transaction.TotalBookingTime;
+                    unitOfWork.UserRepository.Update(customer);
+                    await unitOfWork.SaveChangeAsync();
+                    await unitOfWork.CommitAsync();
+                }
+                catch (Exception ex)
+                {
+                    await unitOfWork.RollbackAsync();
+                    throw new Exception($"Error when trying to process booking time recharge transaction with MoMo Ipn: {ex.Message}");
+                }
+            }
+        }
+
+        private async Task CancelTransaction(Transaction transaction)
+        {
+            if (transaction.Status == TransactionStatus.Cancel) { return; }
+            try
+            {
+                // Update transaction's status
+                transaction.Status = TransactionStatus.Cancel;
+                unitOfWork.TransactionRepository.Update(transaction);
+                await unitOfWork.SaveChangeAsync();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error when trying to cancel transaction: {ex.Message}");
             }
         }
 
