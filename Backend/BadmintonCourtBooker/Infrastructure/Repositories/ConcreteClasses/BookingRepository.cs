@@ -55,5 +55,10 @@ namespace Infrastructure.Repositories.ConcreteClasses
                 (b.Status == Domain.Enums.BookingStatus.Pending))
                 .ToListAsync();
         }
+
+        public Task<List<Booking>?> GetBookingInSlotToday(DateTime today, int slotid)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
