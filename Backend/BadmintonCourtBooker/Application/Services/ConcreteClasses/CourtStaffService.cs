@@ -77,9 +77,8 @@ namespace Application.Services.ConcreteClasses
                             {
                                 foreach (var bookitem in book)
                                 {
-                                    if (bookitem.Status.Equals(1) ||
-                                        bookitem.Status.Equals(3))
-                                        booking.Add(bookitem);
+                                    await unitOfWork.UserRepository.GetByIdAsync(bookitem.CustomerId);
+                                    booking.Add(bookitem);
                                 }
                             }
                         }
