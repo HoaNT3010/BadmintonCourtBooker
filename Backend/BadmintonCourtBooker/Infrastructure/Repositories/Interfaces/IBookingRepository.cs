@@ -10,5 +10,6 @@ namespace Infrastructure.Repositories.Interfaces
         Task<bool> IsAnySuccessBookings(DateTime rentDate, int slotId);
         Task<Booking?> GetBookingByTransactionDetail(int transactionDetailId);
         Task<List<Booking>?> GetPendingBookings(DateTime rentDate, int slotId);
+        Task<List<Booking>?> GetBookingInSlotToday(DateTime today, int slotid);
     }
 }
