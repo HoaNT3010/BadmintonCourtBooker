@@ -1,7 +1,10 @@
 ﻿using Application.ErrorHandlers;
+using Application.RequestDTOs.Auth;
 using Application.RequestDTOs.Court;
 using Application.ResponseDTOs.Court;
+using Application.Services.ConcreteClasses;
 using Application.Services.Interfaces;
+using Domain.Entities;
 using Infrastructure.Utilities.Paging;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -234,6 +237,29 @@ namespace WebAPI.Controllers
                 Title = "Success",
                 Message = "Successfully delete court",
             });
+        }
+
+        /// <summary>
+        /// update exist court. Only Court Administrator can use this feature.
+        /// </summary>
+        /// <param id="idRequest">Id of court need to be update.</param>
+        /// <returns>Result of update court by id process.</returns>
+        [HttpPut]
+        [Route("update/{idRequest:guid}")]
+        [Produces("application/json")]
+        [Authorize(policy: AuthorizationOptionsSetup.CourtAdministrator)]
+        public async Task<ActionResult<User>> UpdateUserById([FromRoute] Guid idRequest, [FromBody] CourtUpdateRequest courtUpdateRequest)
+        {
+            if (ModelState.IsValid)
+            {
+                var result = await courtService.UpdateCourtById(idRequest, courtUpdateRequest);
+                return Ok(result);
+            }
+            else
+            {
+                return BadRequest(ModelState);
+            }
+
         }
     }
 }
