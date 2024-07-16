@@ -6,5 +6,6 @@ namespace Infrastructure.Repositories.Interfaces
     {
         Task<Transaction?> GetCustomerFullTransaction(Guid customerId, Guid transactionId);
         Task<Transaction?> GetCustomerFullTransaction(Guid customerId, int transactionDetailId);
+        Task<bool> IsAnyPendingRechargeTransaction(Guid customerId);
     }
 }

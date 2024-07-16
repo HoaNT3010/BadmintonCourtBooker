@@ -24,5 +24,12 @@ namespace Infrastructure.Repositories.ConcreteClasses
                 .Include(t => t.TransactionDetails)
                 .FirstOrDefaultAsync(t => t.CreatorId == customerId && t.TransactionDetails.Any(td => td.Id == transactionDetailId));
         }
+
+        public async Task<bool> IsAnyPendingRechargeTransaction(Guid customerId)
+        {
+            return await dbSet.AnyAsync(t => t.CreatorId == customerId &&
+            t.TransactionDetails.Any(td => td.Type == Domain.Enums.TransactionDetailType.BookingTimeRecharge) &&
+            t.Status == Domain.Enums.TransactionStatus.Pending);
+        }
     }
 }

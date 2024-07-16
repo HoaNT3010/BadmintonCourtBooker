@@ -6,5 +6,6 @@ namespace Application.Services.Interfaces
     public interface IMoMoService
     {
         MoMoCreatePaymentResponse? CreateMoMoPaymentForBookingTransaction(Transaction transaction);
+        MoMoCreatePaymentResponse? CreateMoMoPaymentForRechargeTransaction(Transaction transaction);
     }
 }
