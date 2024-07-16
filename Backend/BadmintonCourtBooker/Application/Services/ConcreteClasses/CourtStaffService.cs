@@ -40,7 +40,7 @@ namespace Application.Services.ConcreteClasses
             else return false;
         }
         //View Status of court statu by employee
-        public async Task<(List<StatsCourtResponse>,List<BookingViewBySlot>)> ViewStatsOfCourt(Guid id)
+        public async Task<(List<StatsCourtResponse>, List<BookingViewBySlot>)> ViewStatsOfCourt(Guid id)
         {
             List<Slot> slot = new List<Slot>();
             List<Booking> booking = new List<Booking>();
@@ -73,11 +73,13 @@ namespace Application.Services.ConcreteClasses
                             var today = DateTime.Now.Date;
                             slot.Add(slotitem);
                             var book = await unitOfWork.BookingRepository.GetBookingInSlotToday(today, slotitem.Id);
-                            if(book != null)
+                            if (book != null)
                             {
-                                foreach(var bookitem in book)
+                                foreach (var bookitem in book)
                                 {
-                                    booking.Add(bookitem);
+                                    if (bookitem.Status.Equals(1) ||
+                                        bookitem.Status.Equals(3))
+                                        booking.Add(bookitem);
                                 }
                             }
                         }

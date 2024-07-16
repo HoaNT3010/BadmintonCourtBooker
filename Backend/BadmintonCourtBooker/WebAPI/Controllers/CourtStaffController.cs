@@ -35,7 +35,8 @@ namespace WebAPI.Controllers
         public async Task<ActionResult<StatsCourtResponse>> CreateCourt([FromRoute] Guid id)
         {
             var result = await staffService.ViewStatsOfCourt(id);
-            return Ok(result);
+            var slot = result.Item1; var book = result.Item2;
+            return Ok(new{Slot = slot, Booking = book});
         }
     }
 }
