@@ -35,5 +35,25 @@ namespace Infrastructure.Repositories.ConcreteClasses
                 .Include(b => b.TransactionDetail)
                 .FirstOrDefaultAsync(b => b.CustomerId == customerId && b.Id == bookingId);
         }
+
+        public async Task<bool> IsAnySuccessBookings(DateTime rentDate, int slotId)
+        {
+            return await dbSet.AnyAsync(b => b.RentDate == rentDate &&
+                b.SlotId == slotId &&
+                (b.Status == Domain.Enums.BookingStatus.Success));
+        }
+
+        public async Task<Booking?> GetBookingByTransactionDetail(int transactionDetailId)
+        {
+            return await dbSet.FirstOrDefaultAsync(b => b.TransactionDetailId == transactionDetailId);
+        }
+
+        public async Task<List<Booking>?> GetPendingBookings(DateTime rentDate, int slotId)
+        {
+            return await dbSet.Where(b => b.RentDate == rentDate &&
+                b.SlotId == slotId &&
+                (b.Status == Domain.Enums.BookingStatus.Pending))
+                .ToListAsync();
+        }
     }
 }

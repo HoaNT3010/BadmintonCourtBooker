@@ -2,6 +2,7 @@
 using WebAPI.OptionsSetup.Authentication;
 using WebAPI.OptionsSetup.Authorization;
 using WebAPI.OptionsSetup.Jwt;
+using WebAPI.OptionsSetup.MoMo;
 using WebAPI.OptionsSetup.Swagger;
 
 namespace WebAPI
@@ -40,6 +41,9 @@ namespace WebAPI
 
             // Authorization
             services.ConfigureOptions<AuthorizationOptionsSetup>();
+
+            // MoMo
+            services.ConfigureOptions<MoMoOptionsSetup>();
 
             // Prometheus
 

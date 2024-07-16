@@ -1,12 +1,17 @@
 ﻿using Application.ErrorHandlers;
+using Application.RequestDTOs.MoMo;
 using Application.RequestDTOs.Transaction;
 using Application.ResponseDTOs.Booking;
+using Application.ResponseDTOs.MoMo;
 using Application.ResponseDTOs.Transaction;
 using Application.Services.Interfaces;
 using Infrastructure.Utilities.Paging;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Serilog;
+using System;
 using System.Net;
+using System.Reflection;
 using WebAPI.OptionsSetup.Authorization;
 
 namespace WebAPI.Controllers
@@ -76,6 +81,71 @@ namespace WebAPI.Controllers
         {
             var result = await transactionService.GetPersonalTransactions(queryRequest);
             return Ok(result);
+        }
+
+        /// <summary>
+        /// Process customer payment of a booking time transaction. Only Verified Customer can use this method.
+        /// If there are any invalid booking in the transaction, the transaction and it's booking will be cancel.
+        /// </summary>
+        /// <param name="id">Id of transaction need to be process.</param>
+        /// <returns>Transaction summary after being processed.</returns>
+        [HttpPost]
+        [Route("process/{id:guid}/booking-time")]
+        [Produces("application/json")]
+        [Authorize(policy: AuthorizationOptionsSetup.VerifiedCustomer)]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(TransactionSummary))]
+        [ProducesResponseType((int)HttpStatusCode.Unauthorized, Type = typeof(ErrorDetail))]
+        [ProducesResponseType((int)HttpStatusCode.Forbidden, Type = typeof(ErrorDetail))]
+        [ProducesResponseType((int)HttpStatusCode.NotFound, Type = typeof(ErrorDetail))]
+        public async Task<ActionResult<TransactionSummary>> ProcessBookingTimeTransaction([FromRoute] Guid id)
+        {
+            var result = await transactionService.ProcessBookingTimeTransaction(id);
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Retrieve a MoMo payment for the customer to process a booking transaction. Only Verified Customer can use this method.
+        /// </summary>
+        /// <param name="id">Id of booking transaction.</param>
+        /// <returns>Information of MoMo payment,</returns>
+        [HttpPost]
+        [Route("process/{id:guid}/momo-payment")]
+        [Produces("application/json")]
+        [Authorize(policy: AuthorizationOptionsSetup.VerifiedCustomer)]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(MoMoCreatePaymentResponse))]
+        [ProducesResponseType((int)HttpStatusCode.Unauthorized, Type = typeof(ErrorDetail))]
+        [ProducesResponseType((int)HttpStatusCode.Forbidden, Type = typeof(ErrorDetail))]
+        [ProducesResponseType((int)HttpStatusCode.NotFound, Type = typeof(ErrorDetail))]
+        public async Task<ActionResult<MoMoCreatePaymentResponse>> CreateBookingTransactionMoMoPayment([FromRoute] Guid id)
+        {
+            var result = await transactionService.CreateMoMoPaymentForBookingTransaction(id);
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// DO NOT USE THIS ENDPOINT! Only for MoMo to sent payment result.
+        /// </summary>
+        /// <param name="ipnRequest"></param>
+        /// <returns></returns>
+        [HttpPost]
+        [Route("momo/ipn")]
+        public async Task<ActionResult> MoMoResponseIpn([FromBody] MoMoIpnRequest ipnRequest)
+        {
+            await transactionService.ProcessMoMoPaymentResponse(ipnRequest);
+            return NoContent();
+        }
+
+        /// <summary>
+        /// DO NOT USE THIS ENDPOINT! Only for MoMo to sent payment result.
+        /// </summary>
+        /// <param name="ipnRequest"></param>
+        /// <returns></returns>
+        [HttpGet]
+        [Route("momo/return")]
+        public async Task<ActionResult> MoMoResponseReturn([FromQuery] MoMoIpnRequest ipnRequest)
+        {
+            Log.Information("Received MoMo payment transaction response from HTTP GET return method!");
+            return NoContent();
         }
     }
 }
