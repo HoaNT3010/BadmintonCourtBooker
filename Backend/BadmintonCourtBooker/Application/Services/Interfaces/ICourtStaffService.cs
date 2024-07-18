@@ -10,7 +10,7 @@ namespace Application.Services.Interfaces
     public interface ICourtStaffService
     {
         Task<(List<StatsCourtResponse>, List<BookingViewBySlot>)> ViewStatsOfCourt(Guid id);
-        Task<bool> CourtCheckin(Guid id, string phone);
+        Task<bool> CourtCheckin(Guid id, Guid bookingid);
 
     }
 }

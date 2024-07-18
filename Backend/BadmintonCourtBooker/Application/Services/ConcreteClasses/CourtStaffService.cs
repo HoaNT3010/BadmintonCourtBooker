@@ -25,12 +25,11 @@ namespace Application.Services.ConcreteClasses
             this.mapper = mapper;
             this.jwtService = jwtService;
         }
-        public async Task<bool> CourtCheckin(Guid id, string phone)
+        public async Task<bool> CourtCheckin(Guid id, Guid bookingid)
         {
             await CheckUserIsEmpoloyee(id);
 
-            var cusID = await unitOfWork.UserRepository.GetByPhoneNumberAsync(phone);
-            var getBooking = await unitOfWork.BookingRepository.GetBookingByCustomerIdAsync(cusID.Id);
+            var getBooking = await unitOfWork.BookingRepository.GetByIdAsync(bookingid);
 
             if (getBooking != null)
             {
