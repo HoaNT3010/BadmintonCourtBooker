@@ -2,6 +2,7 @@
 using Infrastructure.Context;
 using Infrastructure.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Infrastructure.Repositories.ConcreteClasses
 {
@@ -56,9 +57,13 @@ namespace Infrastructure.Repositories.ConcreteClasses
                 .ToListAsync();
         }
 
-        public Task<List<Booking>?> GetBookingInSlotToday(DateTime today, int slotid)
+        public async Task<List<Booking>?> GetBookingInSlotToday(DateTime today, int slotid)
         {
-            throw new NotImplementedException();
+            return await dbSet.Where(b => b.RentDate == today &&
+            b.SlotId == slotid &&
+            (b.Status == Domain.Enums.BookingStatus.Success))
+            .Include(x => x.Customer)
+            .ToListAsync();
         }
     }
 }

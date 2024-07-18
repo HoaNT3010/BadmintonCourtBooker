@@ -1,4 +1,5 @@
 ﻿using Application.ErrorHandlers;
+using Application.ResponseDTOs.Booking;
 using Application.ResponseDTOs.CourtStaff;
 using Application.Services.Interfaces;
 using AutoMapper;
@@ -25,22 +26,23 @@ namespace Application.Services.ConcreteClasses
             this.mapper = mapper;
             this.jwtService = jwtService;
         }
-        public async Task<bool> CourtCheckin(Guid id, string phone)
+        public async Task<BookingShortDetail> CourtCheckin(Guid id, Guid bookingid)
         {
             await CheckUserIsEmpoloyee(id);
 
-            var cusID = await unitOfWork.UserRepository.GetByPhoneNumberAsync(phone);
-            var getBooking = await unitOfWork.BookingRepository.GetBookingByCustomerIdAsync(cusID.Id);
-
-            if (getBooking != null)
+            var getBooking = await unitOfWork.BookingRepository.GetByIdAsync(bookingid);
+            if (getBooking.Status != BookingStatus.Success) throw new BadRequestException("Booking is not payment");
+            else if (getBooking != null)
             {
                 getBooking.CheckIn = true;
-                return true;
+                unitOfWork.BookingRepository.Update(getBooking);
+                await unitOfWork.SaveChangeAsync();
+                return mapper.Map<BookingShortDetail>(getBooking);
             }
-            else return false;
+            else throw new BadRequestException("Booking is not exist");
         }
         //View Status of court statu by employee
-        public async Task<(List<StatsCourtResponse>,List<BookingViewBySlot>)> ViewStatsOfCourt(Guid id)
+        public async Task<(List<StatsCourtResponse>, List<BookingViewBySlot>)> ViewStatsOfCourt(Guid id)
         {
             List<Slot> slot = new List<Slot>();
             List<Booking> booking = new List<Booking>();
@@ -73,10 +75,11 @@ namespace Application.Services.ConcreteClasses
                             var today = DateTime.Now.Date;
                             slot.Add(slotitem);
                             var book = await unitOfWork.BookingRepository.GetBookingInSlotToday(today, slotitem.Id);
-                            if(book != null)
+                            if (book != null)
                             {
-                                foreach(var bookitem in book)
+                                foreach (var bookitem in book)
                                 {
+                                    await unitOfWork.UserRepository.GetByIdAsync(bookitem.CustomerId);
                                     booking.Add(bookitem);
                                 }
                             }
