@@ -17,5 +17,6 @@ namespace Application.Services.Interfaces
         Task<PagedList<CourtShortDetail>> SearchCourt(CourtSearchRequest searchRequest);
         Task<bool> SoftDeleteCourt(Guid id);
         Task<CourtDetail> UpdateCourtById(Guid courtId, CourtUpdateRequest courtInfoRequest);
+        Task<CourtDetail?> UpdateCourtPaymentMethods(Guid id, int requestPaymentMethodId);
     }
 }
