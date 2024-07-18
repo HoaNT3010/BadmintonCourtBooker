@@ -1,4 +1,5 @@
 ﻿using Application.ErrorHandlers;
+using Application.ResponseDTOs.Booking;
 using Application.ResponseDTOs.CourtStaff;
 using Application.Services.Interfaces;
 using AutoMapper;
@@ -25,18 +26,20 @@ namespace Application.Services.ConcreteClasses
             this.mapper = mapper;
             this.jwtService = jwtService;
         }
-        public async Task<bool> CourtCheckin(Guid id, Guid bookingid)
+        public async Task<BookingShortDetail> CourtCheckin(Guid id, Guid bookingid)
         {
             await CheckUserIsEmpoloyee(id);
 
             var getBooking = await unitOfWork.BookingRepository.GetByIdAsync(bookingid);
-
-            if (getBooking != null)
+            if (getBooking.Status != BookingStatus.Success) throw new BadRequestException("Booking is not payment");
+            else if (getBooking != null)
             {
                 getBooking.CheckIn = true;
-                return true;
+                unitOfWork.BookingRepository.Update(getBooking);
+                await unitOfWork.SaveChangeAsync();
+                return mapper.Map<BookingShortDetail>(getBooking);
             }
-            else return false;
+            else throw new BadRequestException("Booking is not exist");
         }
         //View Status of court statu by employee
         public async Task<(List<StatsCourtResponse>, List<BookingViewBySlot>)> ViewStatsOfCourt(Guid id)

@@ -42,10 +42,10 @@ namespace WebAPI.Controllers
         /// Checkin when customer u
         /// </summary>
         /// <param name="id">Staff ID.</param>
-        /// <param name="bookingId">booking ID.</param>
+        /// <param name="bookingid">booking ID.</param>
         /// <returns>Result is status of court.</returns>
         [HttpPost]
-        [Route("checkin/")]//{bookingid:guid
+        [Route("checkin/{id:guid}&{bookingid:guid}")]//{bookingid:guid
         [Produces("application/json")]
         [Authorize(policy: AuthorizationOptionsSetup.CourtStaff)]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(CourtCreateResponse))]
