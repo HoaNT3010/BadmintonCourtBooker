@@ -502,6 +502,36 @@ namespace Application.Services.ConcreteClasses
             }
         }
 
+        public async Task<CourtDetail?> UpdateCourtPaymentMethods(Guid id, Guid requestPaymentMethodId)
+        {
+            try
+            {              
+                // Check for existing court 
+                var court = await unitOfWork.CourtRepository.GetByIdAsync(id);
+                if (court == null)
+                {
+                    throw new Exception("Court not found.");
+                }
+                if (court.CourtStatus.Equals("Removed"))
+                {
+                    throw new Exception("Court have been removed.");
+                }
+                // Check for existing payment method
+                var existMethod = await unitOfWork.PaymentMethodRepository.GetByIdAsync(requestPaymentMethodId);
+                if (existMethod == null)
+                {
+                    throw new Exception("Payment Method not found.");
+                }
+                court.PaymentMethods.Add(existMethod);
+                await unitOfWork.SaveChangeAsync();
+                return mapper.Map<CourtDetail>(existMethod);
+            }
+            catch (Exception ex)
+            {
+                throw new BadRequestException(ex.Message);
+            }
+        }
+
         private void CheckExistingPaymentMethods(List<PaymentMethod> currentPaymentMethods, List<PaymentMethodCreate> newPaymentMethods)
         {
             if (currentPaymentMethods == null || currentPaymentMethods.Count == 0)
