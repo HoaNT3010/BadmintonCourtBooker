@@ -261,5 +261,31 @@ namespace WebAPI.Controllers
             }
 
         }
+
+        /// <summary>
+        /// Update payment methods to an already existing badminton court. Only manager and system admin can use this feature.
+        /// </summary>
+        /// <param name="id">Badminton court's ID.</param>
+        /// <param name="requestPaymentMethodId">Id of payment methods to be added as court booking methods.</param>
+        /// <returns>Court detail information with newly added booking methods.</returns>
+        [HttpPut("{id:Guid}&{requestPaymentMethodId:int}/update-payment-methods")]
+        [Produces("application/json")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(CourtDetail))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ErrorDetail))]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ErrorDetail))]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ErrorDetail))]
+        [Authorize(Policy = AuthorizationOptionsSetup.CourtAdministrator)]
+        public async Task<ActionResult<CourtDetail>> UpdateCourtBookingMethods([FromRoute] Guid id, int requestPaymentMethodId)
+        {
+            try
+            {
+                var courtDetail = await courtService.UpdateCourtPaymentMethods(id, requestPaymentMethodId);
+                return Ok(courtDetail);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new ErrorDetail { Message = ex.Message });
+            }
+        }
     }
 }

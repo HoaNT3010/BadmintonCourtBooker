@@ -502,7 +502,7 @@ namespace Application.Services.ConcreteClasses
             }
         }
 
-        public async Task<CourtDetail?> UpdateCourtPaymentMethods(Guid id, Guid requestPaymentMethodId)
+        public async Task<CourtDetail?> UpdateCourtPaymentMethods(Guid id, int requestPaymentMethodId)
         {
             try
             {              
@@ -512,7 +512,7 @@ namespace Application.Services.ConcreteClasses
                 {
                     throw new Exception("Court not found.");
                 }
-                if (court.CourtStatus.Equals("Removed"))
+                if (court.CourtStatus.Equals(CourtStatus.Removed))
                 {
                     throw new Exception("Court have been removed.");
                 }
@@ -522,9 +522,10 @@ namespace Application.Services.ConcreteClasses
                 {
                     throw new Exception("Payment Method not found.");
                 }
+                court.PaymentMethods.Clear();
                 court.PaymentMethods.Add(existMethod);
                 await unitOfWork.SaveChangeAsync();
-                return mapper.Map<CourtDetail>(existMethod);
+                return mapper.Map<CourtDetail>(court);
             }
             catch (Exception ex)
             {
