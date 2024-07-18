@@ -32,9 +32,28 @@ namespace WebAPI.Controllers
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(CourtCreateResponse))]
         [ProducesResponseType((int)HttpStatusCode.BadRequest, Type = typeof(ErrorDetail))]
         [ProducesResponseType((int)HttpStatusCode.InternalServerError, Type = typeof(ErrorDetail))]
-        public async Task<ActionResult<StatsCourtResponse>> CreateCourt([FromRoute] Guid id)
+        public async Task<ActionResult<StatsCourtResponse>> ViewCourt([FromRoute] Guid id)
         {
             var result = await staffService.ViewStatsOfCourt(id);
+            var slot = result.Item1; var book = result.Item2;
+            return Ok(new { Slot = slot, Booking = book });
+        }
+        /// <summary>
+        /// Checkin when customer u
+        /// </summary>
+        /// <param name="id">Staff ID.</param>
+        /// <param name="bookingid">booking ID.</param>
+        /// <returns>Result is status of court.</returns>
+        [HttpPost]
+        [Route("checkin/{id:guid}&{bookingid:guid}")]//{bookingid:guid
+        [Produces("application/json")]
+        [Authorize(policy: AuthorizationOptionsSetup.CourtStaff)]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(CourtCreateResponse))]
+        [ProducesResponseType((int)HttpStatusCode.BadRequest, Type = typeof(ErrorDetail))]
+        [ProducesResponseType((int)HttpStatusCode.InternalServerError, Type = typeof(ErrorDetail))]
+        public async Task<ActionResult<StatsCourtResponse>> CheckinCourt([FromRoute] Guid id, Guid bookingid)
+        {
+            var result = await staffService.CourtCheckin(id, bookingid);
             return Ok(result);
         }
     }
